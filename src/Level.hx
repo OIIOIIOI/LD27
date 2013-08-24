@@ -2,7 +2,6 @@ package ;
 
 import display.FrameManager;
 import entities.Cat;
-import entities.Countdown;
 import entities.Entity;
 import entities.Laser;
 import flash.display.Bitmap;
@@ -14,6 +13,7 @@ import flash.geom.Point;
 import flash.Lib;
 import flash.ui.Keyboard;
 import Main;
+import ui.Countdown;
 
 
 /**
@@ -37,6 +37,7 @@ class Level extends Sprite {
 	
 	var moves:Array<UInt>;
 	var movesIndex:Int;
+	var hits:Int;
 	
 	var nowCoords:IntPoint;
 	var minCoords:IntPoint;
@@ -50,6 +51,8 @@ class Level extends Sprite {
 	var mapBG:BitmapData;
 	var canvasBD:BitmapData;
 	var canvas:Bitmap;
+	
+	var fxContainer:Sprite;
 	
 	var entities:Array<Entity>;
 	var cat:Cat;
@@ -66,6 +69,12 @@ class Level extends Sprite {
 		//
 		generate();
 		draw();
+		//
+		fxContainer = new Sprite();
+		fxContainer.x = canvas.x;
+		fxContainer.y = canvas.y;
+		addChild(fxContainer);
+		new Fx(fxContainer);
 		//
 		start();
 	}
@@ -207,22 +216,6 @@ class Level extends Sprite {
 		}
 		canvas.x = (1000 - canvas.width) / 2;
 		canvas.y = (1000 - canvas.height) / 2;
-		
-		/*progress = 0;
-		nowCoords.x = mapRect.x;
-		nowCoords.y = mapRect.y;
-		// Draw starting point
-		mapBD.setPixel(nowCoords.x, nowCoords.y, 0x00FF00);
-		// Highlight next position
-		var next:IntPoint = nowCoords.clone();
-		switch (keys[progress]) {
-			case K.UP:		next.y--;
-			case K.LEFT:	next.x--;
-			case K.RIGHT:	next.x++;
-		}
-		mapBD.setPixel(next.x, next.y, 0x999999);*/
-		
-		
 	}
 	
 	function start () {
@@ -231,8 +224,11 @@ class Level extends Sprite {
 		isDown = false;
 		hasEnded = false;
 		movesIndex = 0;
+		hits = 0;
 		
 		countdown = new Countdown(300);
+		countdown.x = Lib.current.stage.stageWidth - countdown.width;
+		addChild(countdown);
 		countdown.start();
 		
 		while (entities.length > 0) {
@@ -277,6 +273,7 @@ class Level extends Sprite {
 		// If a key has been pressed
 		if (e.keyCode == K.UP || e.keyCode == K.LEFT || e.keyCode == K.RIGHT) {
 			isDown = true;
+			hits++;
 			// Progress in the series if the key was correct
 			if (e.keyCode == moves[movesIndex]) {
 				// Increment progress
@@ -295,7 +292,8 @@ class Level extends Sprite {
 				}
 				// Check victory
 				if (movesIndex == moves.length) {
-					trace("VICTORY!!!");
+					trace("VICTORY! " + Std.int((10 - countdown.frames / 30) * 1000) / 1000 + " seconds, " + hits + "/" + lvl);
+					if (hits == lvl)	trace("PERFECT!!!");
 					stop();
 					return;
 				}
@@ -308,9 +306,6 @@ class Level extends Sprite {
 					case K.RIGHT:
 						laser.xTarget += TILE_SIZE;
 				}
-				//laser.x = next.x * TILE_SIZE;
-				//laser.y = next.y * TILE_SIZE;
-				//trace(mapRect + " / " + nowCoords + " / " + next);
 			}
 			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
 		}
@@ -321,7 +316,9 @@ class Level extends Sprite {
 	}
 	
 	public function update () {
-		// Countdown update
+		// Update FX
+		Fx.instance.update();
+		// Update countdown
 		countdown.update();
 		// Update entities
 		for (e in entities) {

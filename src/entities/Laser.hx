@@ -14,6 +14,8 @@ class Laser extends Entity {
 	}
 	
 	override public function update () {
+		var tx:Int = x;
+		var ty:Int = y;
 		super.update();
 		xOffset = Std.random(2) * 2 - 1;
 		yOffset = Std.random(2) * 2 - 1;

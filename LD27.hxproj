@@ -6,12 +6,12 @@
     <movie input="" />
     <movie path="bin\LD27.swf" />
     <movie fps="30" />
-    <movie width="1000" />
-    <movie height="1000" />
+    <movie width="600" />
+    <movie height="600" />
     <movie version="11" />
     <movie minorVersion="3" />
     <movie platform="Flash Player" />
-    <movie background="#FFFFFF" />
+    <movie background="#C0C0C0" />
   </output>
   <!-- Other classes to be compiled into your SWF -->
   <classpaths>

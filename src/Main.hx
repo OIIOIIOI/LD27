@@ -37,8 +37,9 @@ class Main {
 		trace((2173457 >> 8) & 0xFF);// G 42
 		trace(2173457 & 0xFF);// B 17*/
 		
-		FrameManager.store("SPRITES", new SpriteBM(0, 0), Resource.getString("spritesJson"));
-		Lib.current.stage.addChild(new Game());
+		//FrameManager.store("SPRITES", new SpriteBM(0, 0), Resource.getString("spritesJson"));
+		//Lib.current.stage.addChild(new Game());
+		Lib.current.stage.addChild(new Test());
 		
 	}
 	

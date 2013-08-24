@@ -40,16 +40,6 @@ class Game extends Sprite {
 		TICK++;
 		// Update level
 		level.update();
-		/*// Timer display
-		if (TICK % 30 == 0) {
-			trace("TIME " + (10 - Math.floor(TICK / 30)));
-		}
-		// Check session end
-		if (TICK >= 300) {
-			trace("FAIL...");
-			endSession();
-			return;
-		}*/
 	}
 	
 }
