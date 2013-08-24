@@ -1,12 +1,15 @@
 package ;
 
 import display.FrameManager;
+import entities.Countdown;
 import entities.Entity;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.Shape;
 import flash.display.Sprite;
+import flash.events.Event;
 import flash.geom.Point;
+import flash.Lib;
 import flash.ui.Keyboard;
 import Main;
 
@@ -30,11 +33,16 @@ class Level extends Sprite {
 	static var R:Random;
 	var seed:Int;
 	
-	var keys:Array<UInt>;
+	var moves:Array<UInt>;
+	var movesIndex:Int;
+	
 	var nowCoords:IntPoint;
 	var minCoords:IntPoint;
 	var maxCoords:IntPoint;
 	var mapRect:IntRect;
+	
+	var isDown:Bool;
+	var hasEnded:Bool;
 	
 	var mapBD:BitmapData;
 	var canvasBD:BitmapData;
@@ -42,23 +50,29 @@ class Level extends Sprite {
 	
 	var entities:Array<Entity>;
 	
+	var countdown:Countdown;
+	
 	public function new (seed:Int, lvl:Int) {
 		super();
 		this.seed = seed;
 		this.lvl = lvl;
-		generate();
+		//
 		entities = new Array<Entity>();
+		//
+		generate();
 		draw();
+		//
+		start();
 	}
 	
 	function generate () {
 		R = new Random(seed);
 		
-		keys = new Array<UInt>();
+		moves = new Array<UInt>();
 		nowCoords = new IntPoint();
 		minCoords = new IntPoint();
 		maxCoords = new IntPoint();
-		while (keys.length < lvl - 1) {
+		while (moves.length < lvl - 1) {
 			pickKey();
 		}
 		pickKey(K.UP);//Always end the series on an UP move
@@ -69,9 +83,9 @@ class Level extends Sprite {
 			// Pick a random move
 			k = 37 + R.random(3);
 			// Prevent the random generation from going over the max height
-			if (lvl > MAX_SIZE - 1 && k == K.UP && keys.length > lvl / 4) {// No need to check if the number of moves (lvl) is smaller than the max size
+			if (lvl > MAX_SIZE - 1 && k == K.UP && moves.length > lvl / 4) {// No need to check if the number of moves (lvl) is smaller than the max size
 				// If y position is already high enough...
-				if (MathLib.iAbs(nowCoords.y) >= Std.int(keys.length / lvl * (MAX_SIZE - 1))) {
+				if (MathLib.iAbs(nowCoords.y) >= Std.int(moves.length / lvl * (MAX_SIZE - 1))) {
 					// ...cancel the UP move for now
 					//trace("cancel UP move");
 					pickKey();
@@ -94,7 +108,7 @@ class Level extends Sprite {
 			}
 		}
 		// Store move
-		keys.push(k);
+		moves.push(k);
 		// Update coords
 		switch (k) {
 			case K.LEFT:
@@ -132,9 +146,8 @@ class Level extends Sprite {
 		// Draw path
 		nowCoords.x = mapRect.x;
 		nowCoords.y = mapRect.y;
-		mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF | mapBD.getPixel(nowCoords.x, nowCoords.y));
-		for (i in 0...keys.length) {
-			switch (keys[i]) {
+		for (i in 0...moves.length) {
+			switch (moves[i]) {
 				case K.LEFT:
 					nowCoords.x--;
 				case K.UP:
@@ -144,8 +157,9 @@ class Level extends Sprite {
 				case K.DOWN:
 					nowCoords.y++;
 			}
-			mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF | mapBD.getPixel(nowCoords.x, nowCoords.y));
+			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x80 | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		}
+		mapBD.setPixel(mapRect.x, mapRect.y, 0xFF | mapBD.getPixel(mapRect.x, mapRect.y));
 		
 		// Create canvas BitmapData if required
 		if (canvasBD != null)	canvasBD.dispose();
@@ -164,10 +178,10 @@ class Level extends Sprite {
 						continue;
 				}
 				switch (mapBD.getPixel(xx, yy) & 0xFF) {
-					case 0xFF:
-						FrameManager.copyFrame(canvasBD, "tile_03", "SPRITES", Game.TAP);
-					default:
+					case 0x80, 0xFF:
 						continue;
+					default:
+						FrameManager.copyFrame(canvasBD, "tile_03", "SPRITES", Game.TAP);
 				}
 			}
 		}
@@ -201,4 +215,95 @@ class Level extends Sprite {
 		
 	}
 	
+	function start () {
+		Game.TICK = 0;
+		countdown = new Countdown(300);
+		countdown.start();
+		
+		isDown = false;
+		hasEnded = false;
+		
+		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
+		Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
+		EM.instance.addEventListener(GE.GAME_OVER, stop);
+	}
+	
+	function keyDownHandler (e:KE) {
+		// SPACE to restart the level
+		if (e.keyCode == K.SPACE)	{
+			if (e.shiftKey) {
+				seed--;// SHIFT + SPACE to change level
+				generate();
+				draw();
+			}
+			stop();
+			start();
+			return;
+		}
+		// If a key is already down or if the level is over, return
+		if (isDown || hasEnded)	return;
+		// If a key has been pressed
+		if (e.keyCode == K.UP || e.keyCode == K.LEFT || e.keyCode == K.RIGHT) {
+			isDown = true;
+			// Progress in the series if the key was correct
+			if (e.keyCode == moves[movesIndex]) {
+				// Increment progress
+				movesIndex++;
+				// Move cat
+				/*switch (e.keyCode) {
+					case K.UP:		nowCoords.y--;
+					case K.LEFT:	nowCoords.x--;
+					case K.RIGHT:	nowCoords.x++;
+				}*/
+				// Check victory
+				if (movesIndex == moves.length) {
+					trace("VICTORY!!!");
+					stop();
+					return;
+				}
+				// Move laser
+				/*var next:IntPoint = nowCoords.clone();
+				switch (keys[movesIndex]) {
+					case K.UP:		next.y--;
+					case K.LEFT:	next.x--;
+					case K.RIGHT:	next.x++;
+				}*/
+			}
+			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
+		}
+	}
+	
+	function keyUpHandler (e:KE) {
+		if (isDown)	isDown = false;
+	}
+	
+	public function update () {
+		countdown.update();
+	}
+	
+	function stop (e:Event = null) {
+		trace("stop level");
+		countdown.reset();
+		hasEnded = true;
+		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);
+	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

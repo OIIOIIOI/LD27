@@ -1,9 +1,12 @@
 package ;
 
 import display.FrameManager;
+import events.EventManager;
+import events.GameEvent;
 import flash.display.BitmapData;
 import flash.display.StageAlign;
 import flash.display.StageScaleMode;
+import flash.events.Event;
 import flash.events.KeyboardEvent;
 import flash.Lib;
 import flash.ui.Keyboard;
@@ -18,6 +21,9 @@ import haxe.Resource;
 
 typedef K = Keyboard;
 typedef KE = KeyboardEvent;
+typedef E = Event;
+typedef EM = EventManager;
+typedef GE = GameEvent;
 
 class Main {
 	
