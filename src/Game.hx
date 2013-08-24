@@ -73,8 +73,8 @@ class Game extends Sprite {
 		trace(seed);
 		
 		// Generate path
-		//lvl = LVL_ROBOT;
-		lvl = LVL_HUMAN;
+		lvl = LVL_ROBOT;
+		//lvl = LVL_HUMAN;
 		//lvl = LVL_BONOBO;
 		keys = new Array<UInt>();
 		nowCoords = new IntPoint();
@@ -216,6 +216,7 @@ class Game extends Sprite {
 	
 	function keyDownHandler (e:KE) {
 		if (e.keyCode == K.SPACE)	{
+			if (e.shiftKey)	seed++;
 			endSession();
 			reset();
 			return;
