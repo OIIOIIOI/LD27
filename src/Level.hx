@@ -1,9 +1,12 @@
 package ;
 
+import display.FrameManager;
 import entities.Entity;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
+import flash.display.Shape;
 import flash.display.Sprite;
+import flash.geom.Point;
 import flash.ui.Keyboard;
 import Main;
 
@@ -33,6 +36,7 @@ class Level extends Sprite {
 	var maxCoords:IntPoint;
 	var mapRect:IntRect;
 	
+	var mapBD:BitmapData;
 	var canvasBD:BitmapData;
 	var canvas:Bitmap;
 	
@@ -117,37 +121,18 @@ class Level extends Sprite {
 		mapRect.h = MathLib.iAbs(minCoords.y) + maxCoords.y + 1;
 		
 		// Create map BitmapData if required
-		if (canvasBD != null)	canvasBD.dispose();
-		canvasBD = new BitmapData(mapRect.w * TILE_SIZE, mapRect.h * TILE_SIZE, false, 0x76909E);
-		// Display map
-		if (canvas == null) {
-			canvas = new Bitmap(canvasBD);
-			addChild(canvas);
-		} else {
-			canvas.bitmapData = canvasBD;
-		}
-		canvas.x = (1000 - canvas.width) / 2;
-		canvas.y = (1000 - canvas.height) / 2;
-		
-		// Create map BitmapData
-		/*if (mapBD != null)	mapBD.dispose();
+		if (mapBD != null)	mapBD.dispose();
 		mapBD = new BitmapData(mapRect.w, mapRect.h, false, 0);
-		// Display map
-		if (mapB == null) {
-			mapB = new Bitmap(mapBD);
-			mapB.scaleX = mapB.scaleY = TILE_SIZE * SCALE;
-			addChild(mapB);
-		} else {
-			mapB.bitmapData = mapBD;
-		}
-		mapB.x = (1000 - mapB.width) / 2;
-		mapB.y = (1000 - mapB.height) / 2;*/
-		//trace(mapRect.w + " x " + mapRect.h);
+		// Apply a pattern
+		var s:Shape = new Shape();
+		s.graphics.beginBitmapFill(FrameManager.getFrame("pattern_01", "SPRITES"));
+		s.graphics.drawRect(0, 0, mapBD.width, mapBD.height);
+		s.graphics.endFill();
+		mapBD.draw(s);
 		// Draw path
 		nowCoords.x = mapRect.x;
 		nowCoords.y = mapRect.y;
 		for (i in 0...keys.length) {
-			// Draw path
 			switch (keys[i]) {
 				case K.LEFT:
 					nowCoords.x--;
@@ -158,8 +143,36 @@ class Level extends Sprite {
 				case K.DOWN:
 					nowCoords.y++;
 			}
-			//mapBD.setPixel(nowCoords.x, nowCoords.y, 0x333333);
+			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x333333);
 		}
+		
+		// Create canvas BitmapData if required
+		if (canvasBD != null)	canvasBD.dispose();
+		canvasBD = new BitmapData(mapRect.w * TILE_SIZE, mapRect.h * TILE_SIZE, false, 0);
+		// Draw level
+		for (yy in 0...mapBD.height) {
+			for (xx in 0...mapBD.width) {
+				Game.TAP.x = xx * TILE_SIZE;
+				Game.TAP.y = yy * TILE_SIZE;
+				switch (mapBD.getPixel(xx, yy)) {
+					case 0xFF0000:
+						FrameManager.copyFrame(canvasBD, "tile_02", "SPRITES", Game.TAP);
+					case 0x000000:
+						FrameManager.copyFrame(canvasBD, "tile_01", "SPRITES", Game.TAP);
+					default:
+						continue;
+				}
+			}
+		}
+		// Display map
+		if (canvas == null) {
+			canvas = new Bitmap(canvasBD);
+			addChild(canvas);
+		} else {
+			canvas.bitmapData = canvasBD;
+		}
+		canvas.x = (1000 - canvas.width) / 2;
+		canvas.y = (1000 - canvas.height) / 2;
 		
 		// Display keys
 		//displayKeys();

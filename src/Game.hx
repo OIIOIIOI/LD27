@@ -8,6 +8,7 @@ import flash.display.Sprite;
 import flash.errors.Error;
 import flash.events.Event;
 import flash.events.KeyboardEvent;
+import flash.geom.Point;
 import flash.Lib;
 import flash.ui.Keyboard;
 import haxe.Log;
@@ -19,6 +20,8 @@ import haxe.Log;
  */
 
 class Game extends Sprite {
+	
+	static public var TAP:Point = new Point();
 	
 	var frames:Int;
 	var hits:Int;
