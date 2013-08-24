@@ -53,6 +53,7 @@ class Game extends Sprite {
 	
 	public function new () {
 		super();
+		seed += Std.random(9999);
 		reset();
 	}
 	
@@ -68,13 +69,12 @@ class Game extends Sprite {
 		isDown = false;
 		hasEnded = false;
 		
-		seed++;
 		R = new Random(seed);
 		trace(seed);
 		
 		// Generate path
-		lvl = LVL_ROBOT;
-		//lvl = LVL_HUMAN;
+		//lvl = LVL_ROBOT;
+		lvl = LVL_HUMAN;
 		//lvl = LVL_BONOBO;
 		keys = new Array<UInt>();
 		nowCoords = new IntPoint();
@@ -121,15 +121,25 @@ class Game extends Sprite {
 				case K.DOWN:
 					nowCoords.y++;
 			}
-			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x330000);
+			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x333333);
 		}
-		// Draw starting point
-		mapBD.setPixel(mapRect.x, mapRect.y, 0x00FF00);
 		
 		// Display keys
 		displayKeys();
 		
 		progress = 0;
+		nowCoords.x = mapRect.x;
+		nowCoords.y = mapRect.y;
+		// Draw starting point
+		mapBD.setPixel(nowCoords.x, nowCoords.y, 0x00FF00);
+		// Highlight next position
+		var next:IntPoint = nowCoords.clone();
+		switch (keys[progress]) {
+			case K.UP:		next.y--;
+			case K.LEFT:	next.x--;
+			case K.RIGHT:	next.x++;
+		}
+		mapBD.setPixel(next.x, next.y, 0x999999);
 		
 		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
 		Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
@@ -211,7 +221,7 @@ class Game extends Sprite {
 			return;
 		}
 		if (isDown || hasEnded)	return;
-		if (e.keyCode == K.UP || e.keyCode == K.DOWN || e.keyCode == K.LEFT || e.keyCode == K.RIGHT) {
+		if (e.keyCode == K.UP || e.keyCode == K.LEFT || e.keyCode == K.RIGHT) {
 			isDown = true;
 			// Increment total number of keystrokes
 			hits++;
@@ -222,9 +232,18 @@ class Game extends Sprite {
 				try {
 					a = aContainer.getChildAt(progress);
 					a.alpha = 0.2;
-				} catch (e:Error) { }
+				} catch (er:Error) { }
+				// Hide current position
+				mapBD.setPixel(nowCoords.x, nowCoords.y, 0x333333);
 				// Increment progress
 				progress++;
+				// Show new position
+				switch (e.keyCode) {
+					case K.UP:		nowCoords.y--;
+					case K.LEFT:	nowCoords.x--;
+					case K.RIGHT:	nowCoords.x++;
+				}
+				mapBD.setPixel(nowCoords.x, nowCoords.y, 0x00FF00);
 				// Check victory
 				if (progress == keys.length) {
 					trace("VICTORY!!!");
@@ -235,7 +254,15 @@ class Game extends Sprite {
 				try {
 					a = aContainer.getChildAt(progress);
 					a.alpha = 1;
-				} catch (e:Error) { }
+				} catch (er:Error) { }
+				// Highlight next position
+				var next:IntPoint = nowCoords.clone();
+				switch (keys[progress]) {
+					case K.UP:		next.y--;
+					case K.LEFT:	next.x--;
+					case K.RIGHT:	next.x++;
+				}
+				mapBD.setPixel(next.x, next.y, 0x999999);
 			}
 			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
 		}
