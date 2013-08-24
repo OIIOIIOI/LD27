@@ -22,17 +22,22 @@ typedef K = Keyboard;
 
 class Game extends Sprite {
 	
-	static var DIFF_BONOBO:Int = 15;
-	static var DIFF_HUMAN:Int = 40;
-	static var DIFF_ROBOT:Int = 90;
+	// level = number of moves in the series
+	static var LVL_BONOBO:Int = 15;
+	static var LVL_HUMAN:Int = 40;
+	static var LVL_ROBOT:Int = 90;
+	var lvl:Int;
+	
+	static var MAX_SIZE:Int = 18;// Max height and width of a map
+	static var TILE_SIZE:Int = 16;// Pixels in a tile
+	static var SCALE:Int = 2;// Scale for displaying tiles
 	
 	static var R:Random;
-	static var seed:Int = 10000049;
+	static var seed:Int = 10000000;
 	
 	var frames:Int;
 	var hits:Int;
 	var isDown:Bool;
-	var isAllowed:Bool;
 	var keys:Array<UInt>;
 	var progress:Int;
 	var hasEnded:Bool;
@@ -61,7 +66,6 @@ class Game extends Sprite {
 		frames = 0;
 		hits = 0;
 		isDown = false;
-		isAllowed = true;
 		hasEnded = false;
 		
 		seed++;
@@ -69,14 +73,17 @@ class Game extends Sprite {
 		trace(seed);
 		
 		// Generate path
+		lvl = LVL_ROBOT;
+		//lvl = LVL_HUMAN;
+		//lvl = LVL_BONOBO;
 		keys = new Array<UInt>();
 		nowCoords = new IntPoint();
 		minCoords = new IntPoint();
 		maxCoords = new IntPoint();
-		while (keys.length < DIFF_ROBOT) {
+		while (keys.length < lvl - 1) {
 			pickKey();
 		}
-		pickKey(K.UP);
+		pickKey(K.UP);//Always end the series on an UP move
 		
 		// Get map size and starting point
 		mapRect = new IntRect();
@@ -84,7 +91,6 @@ class Game extends Sprite {
 		mapRect.y = MathLib.iAbs(minCoords.y);
 		mapRect.w = MathLib.iAbs(minCoords.x) + maxCoords.x + 1;
 		mapRect.h = MathLib.iAbs(minCoords.y) + maxCoords.y + 1;
-		trace(mapRect + "(" + (mapRect.x * 16) + "x" + (mapRect.y * 16) + ")");
 		
 		// Create map BitmapData
 		if (mapBD != null)	mapBD.dispose();
@@ -92,15 +98,14 @@ class Game extends Sprite {
 		// Display map
 		if (mapB == null) {
 			mapB = new Bitmap(mapBD);
-			mapB.scaleX = mapB.scaleY = 16;
+			mapB.scaleX = mapB.scaleY = TILE_SIZE * SCALE;
 			addChild(mapB);
 		} else {
 			mapB.bitmapData = mapBD;
 		}
-		mapB.x = 1000 - mapB.width;
-		mapB.y = 1000 - mapB.height;
-		// Draw starting point
-		mapBD.setPixel(mapRect.x, mapRect.y, 0x00FF00);
+		mapB.x = (1000 - mapB.width) / 2;
+		mapB.y = (1000 - mapB.height) / 2;
+		//trace(mapRect.w + " x " + mapRect.h);
 		// Draw path
 		nowCoords.x = mapRect.x;
 		nowCoords.y = mapRect.y;
@@ -116,8 +121,10 @@ class Game extends Sprite {
 				case K.DOWN:
 					nowCoords.y++;
 			}
-			mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF0000);
+			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x330000);
 		}
+		// Draw starting point
+		mapBD.setPixel(mapRect.x, mapRect.y, 0x00FF00);
 		
 		// Display keys
 		displayKeys();
@@ -132,17 +139,36 @@ class Game extends Sprite {
 	
 	function pickKey (k:UInt = 0) {
 		if (k == 0) {
+			// Pick a random move
 			k = 37 + R.random(3);
-			
-			/*if (k == K.UP) {
-				if () {
-					
+			// Prevent the random generation from going over the max height
+			if (lvl > MAX_SIZE - 1 && k == K.UP && keys.length > lvl / 4) {// No need to check if the number of moves (lvl) is smaller than the max size
+				// If y position is already high enough...
+				if (MathLib.iAbs(nowCoords.y) >= Std.int(keys.length / lvl * (MAX_SIZE - 1))) {
+					// ...cancel the UP move for now
+					//trace("cancel UP move");
+					pickKey();
+					return;
 				}
-			}*/
+			}
+			// If x position is at the minimum and a LEFT move was picked but the max width is already reached...
+			if (nowCoords.x == minCoords.x && k == K.LEFT && MathLib.iAbs(minCoords.x) + maxCoords.x + 1 >= MAX_SIZE) {
+				// ...cancel the LEFT move
+				//trace("cancel LEFT move");
+				pickKey();
+				return;
+			}
+			// If x position is at the maximum and a RIGHT move was picked but the max width is already reached...
+			if (nowCoords.x == maxCoords.x && k == K.RIGHT && MathLib.iAbs(minCoords.x) + maxCoords.x + 1 >= MAX_SIZE) {
+				// ...cancel the RIGHT move
+				//trace("cancel RIGHT move");
+				pickKey();
+				return;
+			}
 		}
-		
+		// Store move
 		keys.push(k);
-		
+		// Update coords
 		switch (k) {
 			case K.LEFT:
 				nowCoords.x--;
@@ -160,17 +186,7 @@ class Game extends Sprite {
 	}
 	
 	function displayKeys () {
-		/*var s:String = "";
-		for (i in 0...keys.length) {
-			switch (keys[i]) {
-				case K.LEFT:	s += "LEFT";
-				case K.UP:		s += "UP";
-				case K.RIGHT:	s += "RIGHT";
-				case K.DOWN:	s += "DOWN";
-			}
-			if (i < keys.length - 1)	s += " - ";
-		}
-		trace(s);*/
+		// Create or clean the container
 		if (aContainer == null) {
 			aContainer = new Sprite();
 			aContainer.x = 100;
@@ -179,12 +195,7 @@ class Game extends Sprite {
 		} else {
 			while (aContainer.numChildren > 0)	aContainer.removeChildAt(0);
 		}
-		var xMin:Int = 0;
-		var xMax:Int = 0;
-		var xNow:Int = 0;
-		var yMin:Int = 0;
-		var yMax:Int = 0;
-		var yNow:Int = 0;
+		// Add an arrow object for each move
 		for (i in 0...keys.length) {
 			var a:Arrow = new Arrow(keys[i]);
 			a.x = i * (a.width + 2);
@@ -199,10 +210,9 @@ class Game extends Sprite {
 			reset();
 			return;
 		}
-		if (isDown || !isAllowed || hasEnded)	return;
+		if (isDown || hasEnded)	return;
 		if (e.keyCode == K.UP || e.keyCode == K.DOWN || e.keyCode == K.LEFT || e.keyCode == K.RIGHT) {
 			isDown = true;
-			//isAllowed = false;// Comment this to allow more than one keystroke per update
 			// Increment total number of keystrokes
 			hits++;
 			// Progress in the series if needed
@@ -227,7 +237,6 @@ class Game extends Sprite {
 					a.alpha = 1;
 				} catch (e:Error) { }
 			}
-			//trace("++ " + keys + " - isDown: " + isDown + " / isAllowed: " + isAllowed);
 			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
 		}
 	}
@@ -251,8 +260,6 @@ class Game extends Sprite {
 			endSession();
 			return;
 		}
-		isAllowed = true;
-		//trace("isAllowed: " + isAllowed);
 	}
 	
 	function endSession () {
