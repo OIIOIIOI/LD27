@@ -6,8 +6,8 @@
     <movie input="" />
     <movie path="bin\LD27.swf" />
     <movie fps="30" />
-    <movie width="800" />
-    <movie height="600" />
+    <movie width="1000" />
+    <movie height="1000" />
     <movie version="11" />
     <movie minorVersion="3" />
     <movie platform="Flash Player" />
