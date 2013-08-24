@@ -1,8 +1,10 @@
 package ;
 
 import display.FrameManager;
+import entities.Cat;
 import entities.Countdown;
 import entities.Entity;
+import entities.Laser;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.Shape;
@@ -45,10 +47,13 @@ class Level extends Sprite {
 	var hasEnded:Bool;
 	
 	var mapBD:BitmapData;
+	var mapBG:BitmapData;
 	var canvasBD:BitmapData;
 	var canvas:Bitmap;
 	
 	var entities:Array<Entity>;
+	var cat:Cat;
+	var laser:Laser;
 	
 	var countdown:Countdown;
 	
@@ -161,31 +166,39 @@ class Level extends Sprite {
 		}
 		mapBD.setPixel(mapRect.x, mapRect.y, 0xFF | mapBD.getPixel(mapRect.x, mapRect.y));
 		
-		// Create canvas BitmapData if required
-		if (canvasBD != null)	canvasBD.dispose();
-		canvasBD = new BitmapData(mapRect.w * TILE_SIZE, mapRect.h * TILE_SIZE, false, 0);
+		// Create map BitmapData if required
+		if (mapBG != null)	mapBG.dispose();
+		mapBG = new BitmapData(mapRect.w * TILE_SIZE, mapRect.h * TILE_SIZE, false, 0);
 		// Draw level
 		for (yy in 0...mapBD.height) {
 			for (xx in 0...mapBD.width) {
 				Game.TAP.x = xx * TILE_SIZE;
 				Game.TAP.y = yy * TILE_SIZE;
 				switch (mapBD.getPixel(xx, yy) >> 16) {
-					case 0xFF:
-						FrameManager.copyFrame(canvasBD, "tile_02", "SPRITES", Game.TAP);
+					/*case 0xFF:
+						FrameManager.copyFrame(mapBG, "wood_03", "SPRITES", Game.TAP);
 					case 0x00:
-						FrameManager.copyFrame(canvasBD, "tile_01", "SPRITES", Game.TAP);
+						FrameManager.copyFrame(mapBG, "wood_0" + Std.string(Std.random(3)), "SPRITES", Game.TAP);*/
 					default:
-						continue;
+						FrameManager.copyFrame(mapBG, "wood_0" + Std.string(Std.random(3)), "SPRITES", Game.TAP);
+						//continue;
 				}
 				switch (mapBD.getPixel(xx, yy) & 0xFF) {
-					case 0x80, 0xFF:
-						continue;
+					case 0x80:
+						FrameManager.copyFrame(mapBG, "carpet_00", "SPRITES", Game.TAP);
+					case 0xFF:
+						FrameManager.copyFrame(mapBG, "carpet_00", "SPRITES", Game.TAP);
 					default:
-						FrameManager.copyFrame(canvasBD, "tile_03", "SPRITES", Game.TAP);
+						continue;
 				}
 			}
 		}
-		// Display map
+		
+		// Create canvas BitmapData if required
+		if (canvasBD != null)	canvasBD.dispose();
+		canvasBD = new BitmapData(mapRect.w * TILE_SIZE, mapRect.h * TILE_SIZE, false, 0);
+		
+		// Display canvas
 		if (canvas == null) {
 			canvas = new Bitmap(canvasBD);
 			addChild(canvas);
@@ -194,9 +207,6 @@ class Level extends Sprite {
 		}
 		canvas.x = (1000 - canvas.width) / 2;
 		canvas.y = (1000 - canvas.height) / 2;
-		
-		// Display keys
-		//displayKeys();
 		
 		/*progress = 0;
 		nowCoords.x = mapRect.x;
@@ -217,11 +227,33 @@ class Level extends Sprite {
 	
 	function start () {
 		Game.TICK = 0;
-		countdown = new Countdown(300);
-		countdown.start();
 		
 		isDown = false;
 		hasEnded = false;
+		movesIndex = 0;
+		
+		countdown = new Countdown(300);
+		countdown.start();
+		
+		while (entities.length > 0) {
+			entities.remove(entities[0]);
+		}
+		
+		cat = new Cat();
+		cat.x = cat.xTarget = mapRect.x * TILE_SIZE;
+		cat.y = cat.yTarget = mapRect.y * TILE_SIZE;
+		entities.push(cat);
+		
+		laser = new Laser();
+		var next:IntPoint = new IntPoint(mapRect.x, mapRect.y);
+		switch (moves[movesIndex]) {
+			case K.UP:		next.y--;
+			case K.LEFT:	next.x--;
+			case K.RIGHT:	next.x++;
+		}
+		laser.x = laser.xTarget = next.x * TILE_SIZE;
+		laser.y = laser.yTarget = next.y * TILE_SIZE;
+		entities.push(laser);
 		
 		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
 		Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
@@ -250,11 +282,17 @@ class Level extends Sprite {
 				// Increment progress
 				movesIndex++;
 				// Move cat
-				/*switch (e.keyCode) {
-					case K.UP:		nowCoords.y--;
-					case K.LEFT:	nowCoords.x--;
-					case K.RIGHT:	nowCoords.x++;
-				}*/
+				switch (e.keyCode) {
+					case K.UP:
+						nowCoords.y--;
+						cat.yTarget -= TILE_SIZE;
+					case K.LEFT:
+						nowCoords.x--;
+						cat.xTarget -= TILE_SIZE;
+					case K.RIGHT:
+						nowCoords.x++;
+						cat.xTarget += TILE_SIZE;
+				}
 				// Check victory
 				if (movesIndex == moves.length) {
 					trace("VICTORY!!!");
@@ -262,12 +300,17 @@ class Level extends Sprite {
 					return;
 				}
 				// Move laser
-				/*var next:IntPoint = nowCoords.clone();
-				switch (keys[movesIndex]) {
-					case K.UP:		next.y--;
-					case K.LEFT:	next.x--;
-					case K.RIGHT:	next.x++;
-				}*/
+				switch (moves[movesIndex]) {
+					case K.UP:
+						laser.yTarget -= TILE_SIZE;
+					case K.LEFT:
+						laser.xTarget -= TILE_SIZE;
+					case K.RIGHT:
+						laser.xTarget += TILE_SIZE;
+				}
+				//laser.x = next.x * TILE_SIZE;
+				//laser.y = next.y * TILE_SIZE;
+				//trace(mapRect + " / " + nowCoords + " / " + next);
 			}
 			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
 		}
@@ -278,7 +321,25 @@ class Level extends Sprite {
 	}
 	
 	public function update () {
+		// Countdown update
 		countdown.update();
+		// Update entities
+		for (e in entities) {
+			e.update();
+		}
+		// Render
+		render();
+	}
+	
+	function render () {
+		//canvasBD.fillRect(canvasBD.rect, 0xFF00FF);
+		canvasBD.draw(mapBG);
+		// Render entities
+		for (e in entities) {
+			Game.TAP.x = e.x + e.xOffset;
+			Game.TAP.y = e.y + e.yOffset;
+			FrameManager.copyFrame(canvasBD, e.frameName, "SPRITES", Game.TAP);
+		}
 	}
 	
 	function stop (e:Event = null) {

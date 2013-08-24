@@ -10,8 +10,7 @@ class Cat extends Entity {
 	
 	public function new () {
 		super();
-		anim.push("cat_idle_01");
-		animLoop = true;
+		anim.push("cat_head");
 	}
 	
 }

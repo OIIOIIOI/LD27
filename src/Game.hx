@@ -29,7 +29,7 @@ class Game extends Sprite {
 	public function new () {
 		super();
 		
-		level = new Level(123456789, Level.LVL_BONOBO);
+		level = new Level(123456789, Level.LVL_HUMAN);
 		addChild(level);
 		
 		Lib.current.stage.addEventListener(Event.ENTER_FRAME, update);

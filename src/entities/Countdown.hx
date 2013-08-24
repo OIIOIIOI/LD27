@@ -23,7 +23,6 @@ class Countdown extends Entity {
 	
 	public function start () {
 		started = true;
-		Log.clear();
 		trace("TIME " + (Math.floor(frames / 30)));
 	}
 	
