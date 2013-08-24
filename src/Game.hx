@@ -35,7 +35,7 @@ class Game extends Sprite {
 	
 	public function new () {
 		super();
-		var l:Level = new Level(123456789, Level.LVL_HUMAN);
+		var l:Level = new Level(123456789 - Std.random(99), Level.LVL_HUMAN);
 		addChild(l);
 		//reset();
 	}

@@ -80,7 +80,7 @@ class FrameManager
 			} else {
 				// Look all frames for the specified name
 				for (f in pairs.get(id).frames) {
-					trace(f.name);
+					//trace(f.name);
 					if (f.name == name) {
 						bd = new BitmapData(f.width, f.height, true, 0x00FF00FF);
 						bd.copyPixels(pairs.get(id).sheet, new Rectangle(f.x, f.y, f.width, f.height), point);

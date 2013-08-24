@@ -132,6 +132,7 @@ class Level extends Sprite {
 		// Draw path
 		nowCoords.x = mapRect.x;
 		nowCoords.y = mapRect.y;
+		mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		for (i in 0...keys.length) {
 			switch (keys[i]) {
 				case K.LEFT:
@@ -143,7 +144,7 @@ class Level extends Sprite {
 				case K.DOWN:
 					nowCoords.y++;
 			}
-			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x333333);
+			mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		}
 		
 		// Create canvas BitmapData if required
@@ -154,11 +155,17 @@ class Level extends Sprite {
 			for (xx in 0...mapBD.width) {
 				Game.TAP.x = xx * TILE_SIZE;
 				Game.TAP.y = yy * TILE_SIZE;
-				switch (mapBD.getPixel(xx, yy)) {
-					case 0xFF0000:
+				switch (mapBD.getPixel(xx, yy) >> 16) {
+					case 0xFF:
 						FrameManager.copyFrame(canvasBD, "tile_02", "SPRITES", Game.TAP);
-					case 0x000000:
+					case 0x00:
 						FrameManager.copyFrame(canvasBD, "tile_01", "SPRITES", Game.TAP);
+					default:
+						continue;
+				}
+				switch (mapBD.getPixel(xx, yy) & 0xFF) {
+					case 0xFF:
+						FrameManager.copyFrame(canvasBD, "tile_03", "SPRITES", Game.TAP);
 					default:
 						continue;
 				}
