@@ -8,12 +8,10 @@ $name = $_POST['name'];
 
 require_once "db.php";
 
-$q = "INSERT INTO LD27 (seed, level, time, moves, name) VALUES ('$seed', '$level', '$time', '$moves', '$name')";
-
-if (mysqli_query($db, $q)) {
-	print("r=ok");
-} else {
-	print("r=error");
-}
+$stmt = mysqli_prepare($db, "INSERT INTO LD27 (seed, level, time, moves, name) VALUES (?, ?, ?, ?, ?)");
+mysqli_stmt_bind_param($stmt, 'iisis', $seed, $level, $time, $moves, $name);
+mysqli_stmt_execute($stmt);
+mysqli_stmt_close($stmt);
+mysqli_close($db);
 
 ?>

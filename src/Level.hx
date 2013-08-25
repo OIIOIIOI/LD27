@@ -4,16 +4,20 @@ import display.FrameManager;
 import entities.Cat;
 import entities.Entity;
 import entities.Laser;
+import events.EventManager;
+import events.GameEvent;
 import flash.display.Bitmap;
 import flash.display.BitmapData;
 import flash.display.Shape;
 import flash.display.Sprite;
+import flash.errors.Error;
 import flash.events.Event;
 import flash.geom.Point;
 import flash.Lib;
 import flash.ui.Keyboard;
 import Main;
 import ui.Countdown;
+import ui.ScoreWindow;
 
 
 /**
@@ -23,14 +27,15 @@ import ui.Countdown;
 
 class Level extends Sprite {
 	
-	// level = number of moves in the series
-	static public var LVL_BONOBO:Int = 15;
-	static public var LVL_HUMAN:Int = 40;
-	static public var LVL_ROBOT:Int = 90;
+	static public var SEED_MIN:Int = 0;
+	static public var SEED_MAX:Int = 999999999;
+	
+	static public var DIFFICULTY:Array<Int> = [15, 35, 50, 60];
 	var lvl:Int;
 	
 	static var MAX_SIZE:Int = 18;// Max height and width of a map
 	static var TILE_SIZE:Int = 32;// Pixels in a tile
+	
 	
 	static var R:Random;
 	var seed:Int;
@@ -59,11 +64,22 @@ class Level extends Sprite {
 	var laser:Laser;
 	
 	var countdown:Countdown;
+	var scoreWindow:ScoreWindow;
 	
 	public function new (seed:Int, lvl:Int) {
 		super();
 		this.seed = seed;
+		if (this.seed < SEED_MIN || this.lvl > SEED_MAX) {
+			trace("Invalid seed parameter");
+			this.seed = Std.random(SEED_MAX);
+		}
 		this.lvl = lvl;
+		if (this.lvl < 0 || this.lvl >= DIFFICULTY.length) {
+			trace("Invalid lvl parameter");
+			this.lvl = 0;
+		}
+		//
+		trace("SEED " + this.seed + ", DIFFICULTY " + this.lvl);
 		//
 		entities = new Array<Entity>();
 		//
@@ -86,7 +102,7 @@ class Level extends Sprite {
 		nowCoords = new IntPoint();
 		minCoords = new IntPoint();
 		maxCoords = new IntPoint();
-		while (moves.length < lvl - 1) {
+		while (moves.length < DIFFICULTY[lvl] - 1) {
 			pickKey();
 		}
 		pickKey(K.UP);//Always end the series on an UP move
@@ -97,9 +113,9 @@ class Level extends Sprite {
 			// Pick a random move
 			k = 37 + R.random(3);
 			// Prevent the random generation from going over the max height
-			if (lvl > MAX_SIZE - 1 && k == K.UP && moves.length > lvl / 4) {// No need to check if the number of moves (lvl) is smaller than the max size
+			if (DIFFICULTY[lvl] > MAX_SIZE - 1 && k == K.UP && moves.length > DIFFICULTY[lvl] / 4) {// No need to check if the number of moves is smaller than the max size
 				// If y position is already high enough...
-				if (MathLib.iAbs(nowCoords.y) >= Std.int(moves.length / lvl * (MAX_SIZE - 1))) {
+				if (MathLib.iAbs(nowCoords.y) >= Std.int(moves.length / DIFFICULTY[lvl] * (MAX_SIZE - 1))) {
 					// ...cancel the UP move for now
 					//trace("cancel UP move");
 					pickKey();
@@ -214,8 +230,8 @@ class Level extends Sprite {
 		} else {
 			canvas.bitmapData = canvasBD;
 		}
-		canvas.x = (1000 - canvas.width) / 2;
-		canvas.y = (1000 - canvas.height) / 2;
+		canvas.x = (Lib.current.stage.stageWidth - canvas.width) / 2;
+		canvas.y = (Lib.current.stage.stageHeight - canvas.height) / 2;
 	}
 	
 	function start () {
@@ -226,9 +242,11 @@ class Level extends Sprite {
 		movesIndex = 0;
 		hits = 0;
 		
-		countdown = new Countdown(300);
-		countdown.x = Lib.current.stage.stageWidth - countdown.width;
-		addChild(countdown);
+		if (countdown == null) {
+			countdown = new Countdown(300);
+			countdown.x = Lib.current.stage.stageWidth - countdown.width;
+			addChild(countdown);
+		}
 		countdown.start();
 		
 		while (entities.length > 0) {
@@ -292,8 +310,17 @@ class Level extends Sprite {
 				}
 				// Check victory
 				if (movesIndex == moves.length) {
-					trace("VICTORY! " + Std.int((10 - countdown.frames / 30) * 1000) / 1000 + " seconds, " + hits + "/" + lvl);
-					if (hits == lvl)	trace("PERFECT!!!");
+					trace("VICTORY");
+					var time:Float = Std.int((10 - countdown.frames / 30) * 1000) / 1000;
+					
+					if (scoreWindow == null) {
+						EventManager.instance.addEventListener(GameEvent.WINDOW_CLOSE, windowCloseHandler);
+						scoreWindow = new ScoreWindow();
+					}
+					scoreWindow.setParams(seed, lvl, time, hits);
+					Lib.current.stage.removeEventListener(KE.KEY_DOWN, keyDownHandler);
+					Lib.current.stage.addChild(scoreWindow);
+					
 					stop();
 					return;
 				}
@@ -344,6 +371,14 @@ class Level extends Sprite {
 		countdown.reset();
 		hasEnded = true;
 		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);
+	}
+	
+	function windowCloseHandler (e:GameEvent) {
+		try {
+			Lib.current.stage.removeChild(scoreWindow);
+		}
+		catch (e:Error) { }
+		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
 	}
 }
 

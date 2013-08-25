@@ -17,7 +17,8 @@ class ScoreManager {
 	
 	static var cbf:Bool->Void;
 	
-	static public function save (seed:Int, level:Int, time:Float, moves:Int, name:String, cb:Bool->Void = null) {
+	//static public function save (seed:Int, level:Int, time:Float, moves:Int, name:String = "anon", cb:Bool->Void = null) {
+	static public function save (params:Dynamic) {
 		
 		var vars:URLVariables = new URLVariables();
 		
@@ -28,13 +29,13 @@ class ScoreManager {
 		var loader:URLLoader = new URLLoader();
 		loader.dataFormat = URLLoaderDataFormat.VARIABLES;
 		
-		vars.seed = seed;
-		vars.level = level;
-		vars.time = Std.string(time);
-		vars.moves = moves;
-		vars.name = name;
+		vars.seed = params.seed;
+		vars.level = params.level;
+		vars.time = Std.string(params.time);
+		vars.moves = params.moves;
+		vars.name = params.name;
 		
-		cbf = cb;
+		//cbf = cb;
 		
 		loader.addEventListener(Event.COMPLETE, completeHandler);
 		loader.addEventListener(IOErrorEvent.IO_ERROR, errorHandler);
@@ -42,12 +43,12 @@ class ScoreManager {
 	}
 	
 	static function errorHandler (e:IOErrorEvent) {
-		if (cbf != null)	cbf(false);
+		//if (cbf != null)	cbf(false);
 	}
 	
 	static function completeHandler (e:Event) {
-		if (e.target.data.r == "error" && cbf != null)	cbf(false);
-		else if (cbf != null)	cbf(true);
+		//if (e.target.data.r == "error" && cbf != null)	cbf(false);
+		//else if (cbf != null)	cbf(true);
 	}
 	
 }

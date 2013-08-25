@@ -1,17 +1,10 @@
 package ;
 
-import display.FrameManager;
-import flash.display.Bitmap;
-import flash.display.BitmapData;
-import flash.display.DisplayObject;
+import flash.display.Graphics;
 import flash.display.Sprite;
-import flash.errors.Error;
 import flash.events.Event;
-import flash.events.KeyboardEvent;
 import flash.geom.Point;
 import flash.Lib;
-import flash.ui.Keyboard;
-import haxe.Log;
 
 
 /**
@@ -29,7 +22,20 @@ class Game extends Sprite {
 	public function new () {
 		super();
 		
-		level = new Level(123456789, Level.LVL_HUMAN);
+		// Get flashvars
+		var params = Lib.current.loaderInfo.parameters;
+		// Get seed
+		var s:Int = Std.random(Level.SEED_MAX);
+		if (params.s != null && Std.parseInt(params.s) >= Level.SEED_MIN && Std.parseInt(params.s) <= Level.SEED_MAX)
+			s = Std.parseInt(params.s);
+		else trace("Invalid or missing parameter. A new random seed was chosen: " + s);
+		// Get level
+		var l:Int = 0;
+		if (params.l != null && Std.parseInt(params.l) >= 0 && Std.parseInt(params.l) < Level.DIFFICULTY.length)
+			l = Std.parseInt(params.l);
+		else trace("Invalid or missing parameter. Difficulty was set to " + l + ".");
+		
+		level = new Level(s, l);
 		addChild(level);
 		
 		Lib.current.stage.addEventListener(Event.ENTER_FRAME, update);
@@ -40,6 +46,12 @@ class Game extends Sprite {
 		TICK++;
 		// Update level
 		level.update();
+	}
+	
+	static public function drawRect (target:Graphics, color:UInt, alpha:Float = 1, w:Int = 100, h:Int = 100, x:Int = 0, y:Int = 0) {
+		target.beginFill(color, alpha);
+		target.drawRect(x, y, w, h);
+		target.endFill();
 	}
 	
 }

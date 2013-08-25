@@ -9,7 +9,8 @@ import flash.events.Event;
 
 class GameEvent extends Event {
 	
-	inline static public var GAME_OVER:String = "game over";
+	inline static public var GAME_OVER:String = "game_over";
+	inline static public var WINDOW_CLOSE:String = "window_close";
 	
 	public var data:Dynamic;
 	
