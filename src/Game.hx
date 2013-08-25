@@ -30,7 +30,7 @@ class Game extends Sprite {
 			s = Std.parseInt(params.s);
 		//else trace("Invalid or missing parameter. A new random seed was chosen: " + s);
 		// Get level
-		var l:Int = 1;
+		var l:Int = 0;
 		if (params.l != null && Std.parseInt(params.l) >= 0 && Std.parseInt(params.l) < Level.DIFFICULTY.length)
 			l = Std.parseInt(params.l);
 		//else trace("Invalid or missing parameter. Difficulty was set to " + l + ".");

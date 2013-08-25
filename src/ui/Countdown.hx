@@ -32,7 +32,7 @@ class Countdown extends Sprite {
 		tf.selectable = false;
 		tf.width = 200;
 		tf.height = 200;
-		tf.defaultTextFormat = new TextFormat("GoodDog", 96, 0xFF0000, true);
+		tf.defaultTextFormat = new TextFormat("GoodDog", 96, 0x333333, true);
 		tf.text = Std.string(format());
 		addChild(tf);
 	}
@@ -56,8 +56,8 @@ class Countdown extends Sprite {
 		tf.text = Std.string(format());
 		if (frames == 0) {
 			stop();
-			Timer.delay(EM.instance.dispatchEvent.bind(new GameEvent(GE.GAME_OVER, false)), 1000);
-			//EM.instance.dispatchEvent(new GameEvent(GE.GAME_OVER, false));
+			//Timer.delay(EM.instance.dispatchEvent.bind(new GameEvent(GE.GAME_OVER, false)), 1000);
+			EM.instance.dispatchEvent(new GameEvent(GE.GAME_OVER));
 		}
 	}
 	

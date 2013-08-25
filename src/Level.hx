@@ -212,13 +212,13 @@ class Level extends Sprite {
 					case 0xA3:
 						FrameManager.copyFrame(mapBG, "big_tile_02", "SPRITES", Game.TAP);
 					case 0xFF:
-						FrameManager.copyFrame(mapBG, "tile_02", "SPRITES", Game.TAP);
+						FrameManager.copyFrame(mapBG, "tile_03", "SPRITES", Game.TAP);
 					default:
-						FrameManager.copyFrame(mapBG, "tile_01", "SPRITES", Game.TAP);
+						FrameManager.copyFrame(mapBG, "tile_02", "SPRITES", Game.TAP);
 				}
 				switch (mapBD.getPixel(xx, yy) & 0xFF) {// Isolate blue channel
 					case 0x80, 0xFF:
-						FrameManager.copyFrame(mapBG, "tile_03", "SPRITES", Game.TAP);
+						FrameManager.copyFrame(mapBG, "tile_01", "SPRITES", Game.TAP);
 					default:
 						continue;
 				}
@@ -281,27 +281,54 @@ class Level extends Sprite {
 		entities.push(cat);
 		
 		if (scoreWindow == null) {
-			EventManager.instance.addEventListener(GameEvent.WINDOW_CLOSE, windowCloseHandler);
+			EventManager.instance.addEventListener(GameEvent.START_AGAIN, eventHandler);
+			EventManager.instance.addEventListener(GameEvent.TRY_NEW, eventHandler);
+			EventManager.instance.addEventListener(GameEvent.WINDOW_CLOSE, eventHandler);
 			scoreWindow = new ScoreWindow();
 		}
 		
 		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
 		Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
-		EM.instance.addEventListener(GE.GAME_OVER, stop);
+		EM.instance.addEventListener(GE.GAME_OVER, deactivate);
+	}
+	
+	private function eventHandler (e:GameEvent) {
+		switch (e.type) {
+			case GameEvent.START_AGAIN:
+				startAgain(seed, lvl);
+				
+			case GameEvent.TRY_NEW:
+				startAgain(Std.random(Level.SEED_MAX), lvl);
+				
+			case GameEvent.WINDOW_CLOSE:
+				try { Lib.current.stage.removeChild(scoreWindow); }
+				catch (e:Error) { }
+				Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
+				Lib.current.stage.focus = null;
+				
+			default:
+				return;
+		}
+	}
+	
+	function startAgain (s:Int, l:Int) {
+		if (s != seed || l != lvl) {
+			if (s != seed)	seed = s;
+			if (l != lvl)	lvl = l;
+			generate();
+			draw();
+		}
+		countdown.reset();
+		start();
 	}
 	
 	function keyDownHandler (e:KE) {
 		// SPACE to restart the level
-		/*if (e.keyCode == K.SPACE)	{
-			if (e.shiftKey) {
-				seed--;// SHIFT + SPACE to change level
-				generate();
-				draw();
-			}
-			stop();
-			start();
+		if (e.keyCode == K.SPACE)	{
+			if (e.shiftKey)	startAgain(seed - 1, lvl);
+			else			startAgain(seed, lvl);
 			return;
-		}*/
+		}
 		// If a key is already down or if the level is over, return
 		if (isDown || hasEnded)	return;
 		// If a key has been pressed
@@ -337,7 +364,7 @@ class Level extends Sprite {
 					entities.remove(laser);
 					basket.setAnim(BasketAnim.Full);
 					
-					Timer.delay(stop.bind(new GameEvent(GE.GAME_OVER, true)), 1500);
+					deactivate();
 					return;
 				}
 				// Move laser
@@ -382,25 +409,25 @@ class Level extends Sprite {
 		}
 	}
 	
-	function stop (e:GameEvent) {
-		//trace("stop level WIN=" + e.data);
-		scoreWindow.setMode(e.data);
+	function deactivate (e:GameEvent = null) {
+		hasEnded = true;
+		
+		scoreWindow.setMode(e == null);
 		Lib.current.stage.removeEventListener(KE.KEY_DOWN, keyDownHandler);
+		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);
+		
+		Timer.delay(stop.bind(e == null), 1500);
+	}
+	
+	function stop (win:Bool) {
+		//trace("stop level WIN=" + e.data);
 		Lib.current.stage.addChild(scoreWindow);
 		
 		countdown.reset();
-		hasEnded = true;
+		//hasEnded = true;
 		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);
 	}
 	
-	function windowCloseHandler (e:GameEvent) {
-		try {
-			Lib.current.stage.removeChild(scoreWindow);
-		}
-		catch (e:Error) { }
-		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
-		Lib.current.stage.focus = null;
-	}
 }
 
 
