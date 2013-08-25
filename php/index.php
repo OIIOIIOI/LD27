@@ -143,7 +143,7 @@ else {
 		$empty = true;
 		while (mysqli_stmt_fetch($stmt)) {
 			$empty = false;
-			echo $r_name." | ".$r_time." | ".$r_moves."/".$moves[$i]." moves | ".printLink(r_seed, $i)."<br/>";
+			echo $r_name." | ".$r_time." | ".$r_moves."/".$moves[$i]." moves | ".printLink($r_seed, $i)."<br/>";
 		}
 		if ($empty) {
 			echo 'No time yet<br/>';
