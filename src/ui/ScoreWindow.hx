@@ -68,6 +68,10 @@ class ScoreWindow extends Sprite {
 		
 		button.addEventListener(MouseEvent.CLICK, clickHandler);
 		
+		addEventListener(Event.ADDED_TO_STAGE, init);
+	}
+	
+	function init (e:Event) {
 		Timer.delay(focusTF, 20);
 	}
 	

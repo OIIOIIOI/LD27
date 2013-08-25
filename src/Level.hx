@@ -379,6 +379,7 @@ class Level extends Sprite {
 		}
 		catch (e:Error) { }
 		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
+		Lib.current.stage.focus = null;
 	}
 }
 
