@@ -73,15 +73,7 @@ class Level extends Sprite {
 	public function new (seed:Int, lvl:Int) {
 		super();
 		this.seed = seed;
-		if (this.seed < SEED_MIN || this.lvl > SEED_MAX) {
-			trace("Invalid seed parameter");
-			this.seed = Std.random(SEED_MAX);
-		}
 		this.lvl = lvl;
-		if (this.lvl < 0 || this.lvl >= DIFFICULTY.length) {
-			trace("Invalid lvl parameter");
-			this.lvl = 0;
-		}
 		//
 		trace("SEED " + this.seed + ", DIFFICULTY " + this.lvl);
 		//
@@ -177,12 +169,12 @@ class Level extends Sprite {
 		/*var bmp = new Bitmap(mapBD);
 		bmp.scaleX = bmp.scaleY = 16;
 		Lib.current.stage.addChild(bmp);*/
-		/*// Apply a pattern
+		// Apply a pattern
 		var s:Shape = new Shape();
 		s.graphics.beginBitmapFill(FrameManager.getFrame("pattern_01", "SPRITES"));
 		s.graphics.drawRect(0, 0, mapBD.width, mapBD.height);
 		s.graphics.endFill();
-		mapBD.draw(s);*/
+		mapBD.draw(s);
 		// Draw path
 		nowCoords.x = mapRect.x;
 		nowCoords.y = mapRect.y;
@@ -200,7 +192,6 @@ class Level extends Sprite {
 			if (i < moves.length - 1)	mapBD.setPixel(nowCoords.x, nowCoords.y, 0x80 | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		}
 		endCoords = nowCoords.clone();
-		//mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		mapBD.setPixel(mapRect.x, mapRect.y, 0xFF | mapBD.getPixel(mapRect.x, mapRect.y));
 		
 		// Create map BitmapData if required
@@ -211,11 +202,25 @@ class Level extends Sprite {
 			for (xx in 0...mapBD.width) {
 				Game.TAP.x = xx * TILE_SIZE;
 				Game.TAP.y = yy * TILE_SIZE;
+				switch (mapBD.getPixel(xx, yy) >> 16) {// Isolate red channel
+					case 0xA0:
+						FrameManager.copyFrame(mapBG, "big_tile_00", "SPRITES", Game.TAP);
+					case 0xA1:
+						FrameManager.copyFrame(mapBG, "big_tile_01", "SPRITES", Game.TAP);
+					case 0xA2:
+						FrameManager.copyFrame(mapBG, "big_tile_03", "SPRITES", Game.TAP);
+					case 0xA3:
+						FrameManager.copyFrame(mapBG, "big_tile_02", "SPRITES", Game.TAP);
+					case 0xFF:
+						FrameManager.copyFrame(mapBG, "tile_02", "SPRITES", Game.TAP);
+					default:
+						FrameManager.copyFrame(mapBG, "tile_01", "SPRITES", Game.TAP);
+				}
 				switch (mapBD.getPixel(xx, yy) & 0xFF) {// Isolate blue channel
 					case 0x80, 0xFF:
-						FrameManager.copyFrame(mapBG, "carpet_00", "SPRITES", Game.TAP);
+						FrameManager.copyFrame(mapBG, "tile_03", "SPRITES", Game.TAP);
 					default:
-						FrameManager.copyFrame(mapBG, "wood_0" + Std.string(Std.random(3)), "SPRITES", Game.TAP);
+						continue;
 				}
 			}
 		}
@@ -333,7 +338,6 @@ class Level extends Sprite {
 					basket.setAnim(BasketAnim.Full);
 					
 					Timer.delay(stop.bind(new GameEvent(GE.GAME_OVER, true)), 1500);
-					//stop(new GameEvent(GE.GAME_OVER, true));
 					return;
 				}
 				// Move laser
