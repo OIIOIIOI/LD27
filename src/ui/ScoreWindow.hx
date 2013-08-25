@@ -6,12 +6,15 @@ import flash.display.Shape;
 import flash.display.Sprite;
 import flash.errors.Error;
 import flash.events.Event;
+import flash.events.KeyboardEvent;
 import flash.events.MouseEvent;
 import flash.Lib;
+import flash.net.URLRequest;
 import flash.text.TextField;
 import flash.text.TextFieldType;
 import flash.text.TextFormat;
 import flash.text.TextFormatAlign;
+import flash.ui.Keyboard;
 import haxe.Timer;
 
 /**
@@ -20,6 +23,8 @@ import haxe.Timer;
  */
 
 class ScoreWindow extends Sprite {
+	
+	static var DEFAULT_NAME:String = "ENTER_YOUR_NAME";
 	
 	var win:Bool;
 	
@@ -73,7 +78,11 @@ class ScoreWindow extends Sprite {
 		nameTF.height = 35;
 		nameTF.x = 25;
 		nameTF.y = titleTF.y + titleTF.height + 20;
-		nameTF.text = "ENTER YOUR NAME";
+		if (Game.SO.data.username != null && Game.SO.data.username != DEFAULT_NAME) {
+			nameTF.text = Game.SO.data.username;
+		} else {
+			nameTF.text = DEFAULT_NAME;
+		}
 		
 		submitButton = new Button();
 		submitButton.x = window.width - submitButton.width - 25;
@@ -109,7 +118,11 @@ class ScoreWindow extends Sprite {
 	
 	function focusTF () {
 		Lib.current.stage.focus = nameTF;
-		nameTF.setSelection(0, nameTF.text.length);
+		if (nameTF.text == DEFAULT_NAME) {
+			nameTF.setSelection(0, nameTF.text.length);
+		} else {
+			nameTF.setSelection(nameTF.text.length, nameTF.text.length);
+		}
 	}
 	
 	public function setParams (seed:Int, level:Int, time:Float, moves:Int) {
@@ -134,11 +147,12 @@ class ScoreWindow extends Sprite {
 		submitButton.mouseEnabled = true;
 		submitButton.alpha = 1;
 		nameTF.mouseEnabled = true;
-		submitButton.alpha = 1;
+		nameTF.alpha = 1;
+		nameTF.type = TextFieldType.INPUT;
 		
 		// Set
 		if (this.win) {
-			titleTF.text = "Congratulations!";
+			titleTF.text = "CONGRATULATIONS!";
 			submitButton.label = "Submit";
 			contentTF.text = "Start again and try to beat your time or give another level a go!";
 			mainButton.label = "Restart";
@@ -149,9 +163,10 @@ class ScoreWindow extends Sprite {
 			window.addChild(contentTF);
 			window.addChild(mainButton);
 			window.addChild(secondButton);
+			nameTF.addEventListener(KeyboardEvent.KEY_DOWN, keyDownhandler);
 		}
 		else {
-			titleTF.text = "Time is out!";
+			titleTF.text = "TIME IS OUT!";
 			contentTF.text = "Play this level again or skip to another one...";
 			mainButton.label = "Retry";
 			secondButton.label = "Skip";
@@ -162,28 +177,48 @@ class ScoreWindow extends Sprite {
 		}
 	}
 	
+	function keyDownhandler (e:KeyboardEvent) {
+		if (e.keyCode == Keyboard.ENTER || e.keyCode == Keyboard.NUMPAD_ENTER) {
+			submit();
+		}
+	}
+	
 	function clickHandler (e:MouseEvent) {
 		if (e.currentTarget == submitButton) {
-			// If qon
-			if (win && ready) {
-				if (nameTF.text == "")	nameTF.text = "ANON";
-				params.name = nameTF.text;
-				ScoreManager.save(params);
-				submitButton.mouseEnabled = false;
-				submitButton.alpha = 0.5;
-				nameTF.mouseEnabled = false;
-				nameTF.alpha = 0.5;
-				return;
-			}
+			submit();
+			return;
 		}
 		else if (e.currentTarget == mainButton) {
 			EventManager.instance.dispatchEvent(new GameEvent(GameEvent.START_AGAIN));
 		}
 		else if (e.currentTarget == secondButton) {
-			EventManager.instance.dispatchEvent(new GameEvent(GameEvent.TRY_NEW));
+			Lib.getURL(new URLRequest("http://01101101.fr/ld27/?s=" + Std.random(Level.SEED_MAX)), "_self");
+			return;
 		}
 		EventManager.instance.dispatchEvent(new GameEvent(GameEvent.WINDOW_CLOSE));
 		ready = false;
+	}
+	
+	function submit () {
+		// If won
+		if (win && ready) {
+			if (nameTF.text == "")	nameTF.text = DEFAULT_NAME;
+			else if (nameTF.text != DEFAULT_NAME) {
+				Game.SO.data.username = nameTF.text;
+				Game.SO.flush();
+			}
+			
+			params.name = nameTF.text;
+			ScoreManager.save(params);
+			
+			submitButton.mouseEnabled = false;
+			submitButton.alpha = 0.5;
+			nameTF.setSelection(0, 0);
+			nameTF.type = TextFieldType.DYNAMIC;
+			nameTF.mouseEnabled = false;
+			nameTF.alpha = 0.5;
+			nameTF.removeEventListener(KeyboardEvent.KEY_DOWN, keyDownhandler);
+		}
 	}
 	
 }

@@ -5,6 +5,7 @@ import flash.display.Sprite;
 import flash.events.Event;
 import flash.geom.Point;
 import flash.Lib;
+import flash.net.SharedObject;
 
 
 /**
@@ -16,6 +17,7 @@ class Game extends Sprite {
 	
 	static public var TAP:Point = new Point();
 	static public var TICK:Int = 0;
+	static public var SO:SharedObject = SharedObject.getLocal("01101101");
 	
 	var level:Level;
 	
