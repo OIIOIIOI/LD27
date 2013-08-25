@@ -328,7 +328,11 @@ class Level extends Sprite {
 					var time:Float = Std.int((10 - countdown.frames / 30) * 1000) / 1000;
 					scoreWindow.setParams(seed, lvl, time, hits);
 					
-					Timer.delay(stop.bind(new GameEvent(GE.GAME_OVER, true)), 1000);
+					entities.remove(cat);
+					entities.remove(laser);
+					basket.setAnim(BasketAnim.Full);
+					
+					Timer.delay(stop.bind(new GameEvent(GE.GAME_OVER, true)), 1500);
 					//stop(new GameEvent(GE.GAME_OVER, true));
 					return;
 				}
