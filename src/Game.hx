@@ -28,12 +28,12 @@ class Game extends Sprite {
 		var s:Int = Std.random(Level.SEED_MAX);
 		if (params.s != null && Std.parseInt(params.s) >= Level.SEED_MIN && Std.parseInt(params.s) <= Level.SEED_MAX)
 			s = Std.parseInt(params.s);
-		else trace("Invalid or missing parameter. A new random seed was chosen: " + s);
+		//else trace("Invalid or missing parameter. A new random seed was chosen: " + s);
 		// Get level
 		var l:Int = 0;
 		if (params.l != null && Std.parseInt(params.l) >= 0 && Std.parseInt(params.l) < Level.DIFFICULTY.length)
 			l = Std.parseInt(params.l);
-		else trace("Invalid or missing parameter. Difficulty was set to " + l + ".");
+		//else trace("Invalid or missing parameter. Difficulty was set to " + l + ".");
 		
 		level = new Level(s, l);
 		addChild(level);

@@ -20,6 +20,8 @@ import haxe.Timer;
 
 class ScoreWindow extends Sprite {
 	
+	var win:Bool;
+	
 	var black:Sprite;
 	var window:Sprite;
 	var bg:Shape;
@@ -88,6 +90,10 @@ class ScoreWindow extends Sprite {
 		params.moves = moves;
 		
 		ready = true;
+	}
+	
+	public function setMode (win:Bool) {
+		this.win = win;
 	}
 	
 	function clickHandler (e:MouseEvent) {

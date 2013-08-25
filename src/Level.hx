@@ -1,6 +1,7 @@
 package ;
 
 import display.FrameManager;
+import entities.Basket;
 import entities.Cat;
 import entities.Entity;
 import entities.Laser;
@@ -15,6 +16,7 @@ import flash.events.Event;
 import flash.geom.Point;
 import flash.Lib;
 import flash.ui.Keyboard;
+import haxe.Timer;
 import Main;
 import ui.Countdown;
 import ui.ScoreWindow;
@@ -47,6 +49,7 @@ class Level extends Sprite {
 	var nowCoords:IntPoint;
 	var minCoords:IntPoint;
 	var maxCoords:IntPoint;
+	var endCoords:IntPoint;
 	var mapRect:IntRect;
 	
 	var isDown:Bool;
@@ -61,6 +64,7 @@ class Level extends Sprite {
 	
 	var entities:Array<Entity>;
 	var cat:Cat;
+	var basket:Basket;
 	var laser:Laser;
 	
 	var countdown:Countdown;
@@ -164,15 +168,21 @@ class Level extends Sprite {
 		mapRect.w = MathLib.iAbs(minCoords.x) + maxCoords.x + 1;
 		mapRect.h = MathLib.iAbs(minCoords.y) + maxCoords.y + 1;
 		
+		mapRect.h += 1;
+		mapRect.y += 1;
+		
 		// Create map BitmapData if required
 		if (mapBD != null)	mapBD.dispose();
 		mapBD = new BitmapData(mapRect.w, mapRect.h, false, 0);
-		// Apply a pattern
+		/*var bmp = new Bitmap(mapBD);
+		bmp.scaleX = bmp.scaleY = 16;
+		Lib.current.stage.addChild(bmp);*/
+		/*// Apply a pattern
 		var s:Shape = new Shape();
 		s.graphics.beginBitmapFill(FrameManager.getFrame("pattern_01", "SPRITES"));
 		s.graphics.drawRect(0, 0, mapBD.width, mapBD.height);
 		s.graphics.endFill();
-		mapBD.draw(s);
+		mapBD.draw(s);*/
 		// Draw path
 		nowCoords.x = mapRect.x;
 		nowCoords.y = mapRect.y;
@@ -187,8 +197,10 @@ class Level extends Sprite {
 				case K.DOWN:
 					nowCoords.y++;
 			}
-			mapBD.setPixel(nowCoords.x, nowCoords.y, 0x80 | mapBD.getPixel(nowCoords.x, nowCoords.y));
+			if (i < moves.length - 1)	mapBD.setPixel(nowCoords.x, nowCoords.y, 0x80 | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		}
+		endCoords = nowCoords.clone();
+		//mapBD.setPixel(nowCoords.x, nowCoords.y, 0xFF | mapBD.getPixel(nowCoords.x, nowCoords.y));
 		mapBD.setPixel(mapRect.x, mapRect.y, 0xFF | mapBD.getPixel(mapRect.x, mapRect.y));
 		
 		// Create map BitmapData if required
@@ -199,22 +211,11 @@ class Level extends Sprite {
 			for (xx in 0...mapBD.width) {
 				Game.TAP.x = xx * TILE_SIZE;
 				Game.TAP.y = yy * TILE_SIZE;
-				switch (mapBD.getPixel(xx, yy) >> 16) {
-					/*case 0xFF:
-						FrameManager.copyFrame(mapBG, "wood_03", "SPRITES", Game.TAP);
-					case 0x00:
-						FrameManager.copyFrame(mapBG, "wood_0" + Std.string(Std.random(3)), "SPRITES", Game.TAP);*/
+				switch (mapBD.getPixel(xx, yy) & 0xFF) {// Isolate blue channel
+					case 0x80, 0xFF:
+						FrameManager.copyFrame(mapBG, "carpet_00", "SPRITES", Game.TAP);
 					default:
 						FrameManager.copyFrame(mapBG, "wood_0" + Std.string(Std.random(3)), "SPRITES", Game.TAP);
-						//continue;
-				}
-				switch (mapBD.getPixel(xx, yy) & 0xFF) {
-					case 0x80:
-						FrameManager.copyFrame(mapBG, "carpet_00", "SPRITES", Game.TAP);
-					case 0xFF:
-						FrameManager.copyFrame(mapBG, "carpet_00", "SPRITES", Game.TAP);
-					default:
-						continue;
 				}
 			}
 		}
@@ -253,10 +254,10 @@ class Level extends Sprite {
 			entities.remove(entities[0]);
 		}
 		
-		cat = new Cat();
-		cat.x = cat.xTarget = mapRect.x * TILE_SIZE;
-		cat.y = cat.yTarget = mapRect.y * TILE_SIZE;
-		entities.push(cat);
+		basket = new Basket();
+		basket.x = basket.xTarget = endCoords.x * TILE_SIZE;
+		basket.y = basket.yTarget = endCoords.y * TILE_SIZE;
+		entities.push(basket);
 		
 		laser = new Laser();
 		var next:IntPoint = new IntPoint(mapRect.x, mapRect.y);
@@ -269,6 +270,16 @@ class Level extends Sprite {
 		laser.y = laser.yTarget = next.y * TILE_SIZE;
 		entities.push(laser);
 		
+		cat = new Cat();
+		cat.x = cat.xTarget = mapRect.x * TILE_SIZE;
+		cat.y = cat.yTarget = mapRect.y * TILE_SIZE;
+		entities.push(cat);
+		
+		if (scoreWindow == null) {
+			EventManager.instance.addEventListener(GameEvent.WINDOW_CLOSE, windowCloseHandler);
+			scoreWindow = new ScoreWindow();
+		}
+		
 		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
 		Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
 		EM.instance.addEventListener(GE.GAME_OVER, stop);
@@ -276,7 +287,7 @@ class Level extends Sprite {
 	
 	function keyDownHandler (e:KE) {
 		// SPACE to restart the level
-		if (e.keyCode == K.SPACE)	{
+		/*if (e.keyCode == K.SPACE)	{
 			if (e.shiftKey) {
 				seed--;// SHIFT + SPACE to change level
 				generate();
@@ -285,7 +296,7 @@ class Level extends Sprite {
 			stop();
 			start();
 			return;
-		}
+		}*/
 		// If a key is already down or if the level is over, return
 		if (isDown || hasEnded)	return;
 		// If a key has been pressed
@@ -301,6 +312,7 @@ class Level extends Sprite {
 					case K.UP:
 						nowCoords.y--;
 						cat.yTarget -= TILE_SIZE;
+						cat.setAnim(CatAnim.Back);
 					case K.LEFT:
 						nowCoords.x--;
 						cat.xTarget -= TILE_SIZE;
@@ -311,17 +323,13 @@ class Level extends Sprite {
 				// Check victory
 				if (movesIndex == moves.length) {
 					trace("VICTORY");
+					
+					countdown.stop();
 					var time:Float = Std.int((10 - countdown.frames / 30) * 1000) / 1000;
-					
-					if (scoreWindow == null) {
-						EventManager.instance.addEventListener(GameEvent.WINDOW_CLOSE, windowCloseHandler);
-						scoreWindow = new ScoreWindow();
-					}
 					scoreWindow.setParams(seed, lvl, time, hits);
-					Lib.current.stage.removeEventListener(KE.KEY_DOWN, keyDownHandler);
-					Lib.current.stage.addChild(scoreWindow);
 					
-					stop();
+					Timer.delay(stop.bind(new GameEvent(GE.GAME_OVER, true)), 1000);
+					//stop(new GameEvent(GE.GAME_OVER, true));
 					return;
 				}
 				// Move laser
@@ -366,8 +374,12 @@ class Level extends Sprite {
 		}
 	}
 	
-	function stop (e:Event = null) {
-		trace("stop level");
+	function stop (e:GameEvent) {
+		//trace("stop level WIN=" + e.data);
+		scoreWindow.setMode(e.data);
+		Lib.current.stage.removeEventListener(KE.KEY_DOWN, keyDownHandler);
+		Lib.current.stage.addChild(scoreWindow);
+		
 		countdown.reset();
 		hasEnded = true;
 		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);

@@ -1,4 +1,5 @@
 package entities;
+import display.AnimFrame;
 
 
 /**
@@ -8,7 +9,7 @@ package entities;
 
 class Entity {
 	
-	var anim:Array<String>;
+	var anim:Array<AnimFrame>;
 	var animIndex:Int;
 	var animLoop:Bool;
 	public var x:Int;
@@ -19,7 +20,7 @@ class Entity {
 	public var yTarget:Int;
 	
 	public function new () {
-		anim = new Array<String>();
+		anim = new Array<AnimFrame>();
 		animIndex = 0;
 		animLoop = false;
 		x = y = 0;
@@ -33,6 +34,7 @@ class Entity {
 			if (animIndex >= anim.length) {
 				animIndex = (!animLoop) ? anim.length - 1 : 0;
 			}
+			if (anim[animIndex].action != null)	anim[animIndex].action();
 		}
 		if (xTarget != x) {
 			if (Math.abs(xTarget - x) * 0.5 < 1)	x = xTarget;
@@ -47,7 +49,7 @@ class Entity {
 	public var frameName (get, null) :String;
 	function get_frameName () :String {
 		if (anim.length == 0)	return null;
-		else					return anim[animIndex];
+		else					return anim[animIndex].name;
 	}
 	
 }

@@ -1,4 +1,5 @@
 package entities;
+import display.AnimFrame;
 
 
 /**
@@ -10,7 +11,7 @@ class Laser extends Entity {
 	
 	public function new () {
 		super();
-		anim.push("laser");
+		anim.push(new AnimFrame("laser"));
 	}
 	
 	override public function update () {

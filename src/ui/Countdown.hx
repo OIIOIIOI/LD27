@@ -5,6 +5,7 @@ import flash.display.Sprite;
 import flash.text.TextField;
 import flash.text.TextFormat;
 import haxe.Log;
+import haxe.Timer;
 import Main;
 
 /**
@@ -22,30 +23,41 @@ class Countdown extends Sprite {
 	
 	public function new (frames:Int) {
 		super();
+		
 		this.frames = this.startFrames = frames;
 		started = false;
+		
 		tf = new TextField();
-		tf.width = 160;
-		tf.height = 60;
-		tf.defaultTextFormat = new TextFormat("Arial", 48, 0xFF0000, true);
-		tf.text = Std.string(format()) + "s";
+		tf.embedFonts = true;
+		tf.selectable = false;
+		tf.width = 200;
+		tf.height = 200;
+		tf.defaultTextFormat = new TextFormat("GoodDog", 96, 0xFF0000, true);
+		tf.text = Std.string(format());
 		addChild(tf);
 	}
 	
 	public function format () :Float {
-		return Std.int((frames / 30) * 1000) / 1000;
+		return Std.int((10 - frames / 30) * 100) / 100;
+		
 	}
 	
 	public function start () {
 		started = true;
 	}
 	
+	public function stop () {
+		started = false;
+	}
+	
 	public function update () {
 		if (!started)	return;
 		frames--;
-		tf.text = Std.string(format()) + "s";
+		tf.text = Std.string(format());
 		if (frames == 0) {
-			EM.instance.dispatchEvent(new GE(GE.GAME_OVER));
+			stop();
+			Timer.delay(EM.instance.dispatchEvent.bind(new GameEvent(GE.GAME_OVER, false)), 1000);
+			//EM.instance.dispatchEvent(new GameEvent(GE.GAME_OVER, false));
 		}
 	}
 	
