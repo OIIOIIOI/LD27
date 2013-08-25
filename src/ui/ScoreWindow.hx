@@ -10,6 +10,8 @@ import flash.Lib;
 import flash.text.TextField;
 import flash.text.TextFieldType;
 import flash.text.TextFormat;
+import flash.text.TextFormatAlign;
+import haxe.Timer;
 
 /**
  * ...
@@ -45,10 +47,11 @@ class ScoreWindow extends Sprite {
 		nameTF = new TextField();
 		nameTF.type = TextFieldType.INPUT;
 		nameTF.selectable = true;
+		nameTF.alwaysShowSelection = true;
 		nameTF.maxChars = 16;
 		nameTF.border = true;
 		nameTF.background = true;
-		nameTF.defaultTextFormat = new TextFormat("Arial", 24);
+		nameTF.defaultTextFormat = new TextFormat("Arial", 24, 0, true, false, false, null, null, TextFormatAlign.CENTER);
 		nameTF.width = 400;
 		nameTF.height = 50;
 		nameTF.x = (Lib.current.stage.stageWidth- nameTF.width) / 2;
@@ -65,12 +68,12 @@ class ScoreWindow extends Sprite {
 		
 		button.addEventListener(MouseEvent.CLICK, clickHandler);
 		
-		addEventListener(Event.ADDED_TO_STAGE, init);
+		Timer.delay(focusTF, 20);
 	}
 	
-	private function init (e:Event) {
+	function focusTF () {
 		Lib.current.stage.focus = nameTF;
-		nameTF.setSelection(0, 5);
+		nameTF.setSelection(0, nameTF.text.length);
 	}
 	
 	public function setParams (seed:Int, level:Int, time:Float, moves:Int) {
@@ -83,7 +86,7 @@ class ScoreWindow extends Sprite {
 		ready = true;
 	}
 	
-	public function clickHandler (e:MouseEvent) {
+	function clickHandler (e:MouseEvent) {
 		if (ready) {
 			if (nameTF.text == "")	nameTF.text = "anon";
 			params.name = nameTF.text;
