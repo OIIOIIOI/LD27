@@ -1,0 +1,100 @@
+body {
+	margin:	0px;
+	font-family: "Arial", "sans-serif";
+	font-size:	12px;
+	background-image: url("body_bg.png");
+	background-repeat: repeat-x;
+	background-position: left top;
+}
+
+h1, h2, h3 {
+	margin: 10px 0px;
+}
+
+#wrapper {
+	width: 980px;
+	position: relative;
+	left: 50%;
+	margin-left: -490px;
+	padding-bottom: 80px;
+}
+
+#leftCol {
+	float: left;
+	width: 600px;
+	margin-right: 20px;
+	padding-top: 10px;
+}
+
+#rightCol {
+	float: left;
+}
+
+.clear {
+	clear: both;
+}
+
+.boardHeader {
+	background-color: #000000;
+	color: #ffffff;
+	padding: 10px;
+	margin: 15px 0px 0px 0px;
+	hss-width: 360px;
+	
+	.playLink {
+		margin-left: 10px;
+		position: relative;
+		top: -1px;
+	}
+}
+
+table.leaderboard {
+	width: 360px;
+	
+	td.time {
+		font-weight: bold;
+	}
+	
+	CSS("tr:nth-child(odd)") {
+		background-color: #DDDDDD;
+	}
+	CSS("tr:nth-child(1)") {
+		background-color: #333333;
+		color: #FFFFFF;
+		
+		th {
+			font-weight: normal;
+		}
+	}
+}
+
+.playLink {
+	font-size: 12px;
+	font-weight: normal;
+	background-color: #9BCA2A;
+	padding: 2px 4px;
+	text-decoration: none;
+	color: #000000;
+	border-radius: 5px;
+	border: 1px solid #5D7521;
+}
+a.playLink {
+	background-image: url("play_arrow.gif");
+	background-position: right center;
+	background-repeat: no-repeat;
+	padding-right: 14px;
+}
+a.playLink:hover, span.playLink {
+	background-color: #BEF046;
+}
+
+
+
+
+
+
+
+
+
+
+

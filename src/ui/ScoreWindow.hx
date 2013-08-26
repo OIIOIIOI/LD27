@@ -42,13 +42,15 @@ class ScoreWindow extends Sprite {
 	var params:Dynamic;
 	var ready:Bool;
 	
+	var flevel:Int;
+	
 	public function new () {
 		super();
 		
 		ready = false;
 		
 		black = new Sprite();
-		Game.drawRect(black.graphics, 0x000000, 0.8, Lib.current.stage.stageWidth, Lib.current.stage.stageHeight);
+		Game.drawRect(black.graphics, 0x5D7521, 0.8, Lib.current.stage.stageWidth, Lib.current.stage.stageHeight);
 		addChild(black);
 		
 		window = new Sprite();
@@ -59,7 +61,7 @@ class ScoreWindow extends Sprite {
 		
 		titleTF = new TextField();
 		titleTF.selectable = false;
-		titleTF.defaultTextFormat = new TextFormat("GoodDog", 42, 0, true, false, false, null, null, TextFormatAlign.CENTER);
+		titleTF.defaultTextFormat = new TextFormat("GoodDog", 42, 0x5D7521, true, false, false, null, null, TextFormatAlign.CENTER);
 		titleTF.width = window.width;
 		titleTF.height = 50;
 		titleTF.x = 0;
@@ -70,9 +72,10 @@ class ScoreWindow extends Sprite {
 		nameTF.selectable = true;
 		nameTF.alwaysShowSelection = true;
 		nameTF.maxChars = 16;
-		nameTF.border = true;
+		//nameTF.border = true;
 		nameTF.background = true;
-		nameTF.defaultTextFormat = new TextFormat("Arial", 20, 0, true, false, false, null, null, TextFormatAlign.CENTER);
+		nameTF.backgroundColor = 0xD7E5B0;
+		nameTF.defaultTextFormat = new TextFormat("Arial", 20, 0x5D7521, true, false, false, null, null, TextFormatAlign.CENTER);
 		nameTF.restrict = "A-Z0-9_. \\-";
 		nameTF.width = 290;
 		nameTF.height = 35;
@@ -93,7 +96,7 @@ class ScoreWindow extends Sprite {
 		contentTF.selectable = false;
 		contentTF.wordWrap = true;
 		contentTF.multiline = true;
-		contentTF.defaultTextFormat = new TextFormat("Arial", 20, 0, true, false, false, null, null, TextFormatAlign.CENTER);
+		contentTF.defaultTextFormat = new TextFormat("Arial", 20, 0x5D7521, true, false, false, null, null, TextFormatAlign.CENTER);
 		contentTF.width = window.width - 50;
 		contentTF.height = 90;
 		contentTF.x = 25;
@@ -135,8 +138,11 @@ class ScoreWindow extends Sprite {
 		ready = true;
 	}
 	
-	public function setMode (win:Bool) {
+	public function setMode (win:Bool, level:Int = -1, progress:Float = -1) {
 		this.win = win;
+		if (level != -1) {
+			flevel = level;
+		}
 		// Clean
 		if (window.contains((titleTF)))		window.removeChild(titleTF);
 		if (window.contains(contentTF))		window.removeChild(contentTF);
@@ -167,7 +173,9 @@ class ScoreWindow extends Sprite {
 		}
 		else {
 			titleTF.text = "TIME IS OUT!";
-			contentTF.text = "Play this level again or skip to another one...";
+			if (progress != -1)	contentTF.text = "Just so you know, you did " + Std.int(progress * 100) + "% of this level.\n";
+			else				contentTF.text = "";
+			contentTF.text += "Play this level again or skip to another one...";
 			mainButton.label = "Retry";
 			secondButton.label = "Skip";
 			window.addChild(titleTF);
@@ -192,7 +200,7 @@ class ScoreWindow extends Sprite {
 			EventManager.instance.dispatchEvent(new GameEvent(GameEvent.START_AGAIN));
 		}
 		else if (e.currentTarget == secondButton) {
-			Lib.getURL(new URLRequest("http://01101101.fr/ld27/?s=" + Std.random(Level.SEED_MAX)), "_self");
+			Lib.getURL(new URLRequest("http://01101101.fr/ld27/?s=" + Std.random(Level.SEED_MAX) + "&l=" + flevel), "_self");
 			return;
 		}
 		EventManager.instance.dispatchEvent(new GameEvent(GameEvent.WINDOW_CLOSE));
@@ -211,6 +219,7 @@ class ScoreWindow extends Sprite {
 			params.name = nameTF.text;
 			ScoreManager.save(params);
 			
+			submitButton.label = "Saved!";
 			submitButton.mouseEnabled = false;
 			submitButton.alpha = 0.5;
 			nameTF.setSelection(0, 0);

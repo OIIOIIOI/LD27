@@ -20,6 +20,7 @@ import haxe.Timer;
 import Main;
 import ui.Countdown;
 import ui.ScoreWindow;
+import ui.FocusWindow;
 
 
 /**
@@ -59,6 +60,7 @@ class Level extends Sprite {
 	var mapBG:BitmapData;
 	var canvasBD:BitmapData;
 	var canvas:Bitmap;
+	var bg:Shape;
 	
 	var fxContainer:Sprite;
 	
@@ -69,13 +71,14 @@ class Level extends Sprite {
 	
 	var countdown:Countdown;
 	var scoreWindow:ScoreWindow;
+	var focusWindow:FocusWindow;
 	
 	public function new (seed:Int, lvl:Int) {
 		super();
 		this.seed = seed;
 		this.lvl = lvl;
 		//
-		trace("SEED " + this.seed + ", DIFFICULTY " + this.lvl);
+		//trace("SEED " + this.seed + ", DIFFICULTY " + this.lvl);
 		//
 		entities = new Array<Entity>();
 		//
@@ -232,12 +235,18 @@ class Level extends Sprite {
 		// Display canvas
 		if (canvas == null) {
 			canvas = new Bitmap(canvasBD);
+			
+			bg = new Shape();
+			Game.drawRect(bg.graphics, 0xBAD277, 1, Std.int(canvas.width + 20), Std.int(canvas.height + 20), -10, -10);
+			addChild(bg);
 			addChild(canvas);
 		} else {
 			canvas.bitmapData = canvasBD;
+			bg.graphics.clear();
+			Game.drawRect(bg.graphics, 0xBAD277, 1, Std.int(canvas.width + 20), Std.int(canvas.height + 20), -10, -10);
 		}
-		canvas.x = (Lib.current.stage.stageWidth - canvas.width) / 2;
-		canvas.y = (Lib.current.stage.stageHeight - canvas.height) / 2;
+		canvas.x = bg.x = (Lib.current.stage.stageWidth - canvas.width) / 2;
+		canvas.y = bg.y = (Lib.current.stage.stageHeight - canvas.height) / 2;
 	}
 	
 	function start () {
@@ -250,10 +259,11 @@ class Level extends Sprite {
 		
 		if (countdown == null) {
 			countdown = new Countdown(300);
-			countdown.x = Lib.current.stage.stageWidth - countdown.width;
+			countdown.x = 10;
+			countdown.y = Lib.current.stage.stageHeight - countdown.height;
 			addChild(countdown);
 		}
-		countdown.start();
+		countdown.reset();
 		
 		while (entities.length > 0) {
 			entities.remove(entities[0]);
@@ -282,14 +292,22 @@ class Level extends Sprite {
 		
 		if (scoreWindow == null) {
 			EventManager.instance.addEventListener(GameEvent.START_AGAIN, eventHandler);
-			EventManager.instance.addEventListener(GameEvent.TRY_NEW, eventHandler);
 			EventManager.instance.addEventListener(GameEvent.WINDOW_CLOSE, eventHandler);
 			scoreWindow = new ScoreWindow();
 		}
 		
-		Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
-		Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
-		EM.instance.addEventListener(GE.GAME_OVER, deactivate);
+		// When the game is loaded for the first time, display the focus window
+		if (focusWindow == null) {
+			EventManager.instance.addEventListener(GameEvent.GET_FOCUS, eventHandler);
+			focusWindow = new FocusWindow();
+			addChild(focusWindow);
+		}
+		// Window not null means there is no need to display the focus window again
+		else {
+			Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
+			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
+			EM.instance.addEventListener(GE.GAME_OVER, deactivate);
+		}
 	}
 	
 	private function eventHandler (e:GameEvent) {
@@ -297,12 +315,14 @@ class Level extends Sprite {
 			case GameEvent.START_AGAIN:
 				startAgain(seed, lvl);
 				
-			case GameEvent.TRY_NEW:
-				startAgain(Std.random(Level.SEED_MAX), lvl);
+			case GameEvent.GET_FOCUS:
+				if (contains(focusWindow))	removeChild(focusWindow);
+				Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
+				Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
+				EM.instance.addEventListener(GE.GAME_OVER, deactivate);
 				
 			case GameEvent.WINDOW_CLOSE:
-				try { Lib.current.stage.removeChild(scoreWindow); }
-				catch (e:Error) { }
+				if (contains(scoreWindow))	removeChild(scoreWindow);
 				Lib.current.stage.addEventListener(KE.KEY_DOWN, keyDownHandler);
 				Lib.current.stage.focus = null;
 				
@@ -325,14 +345,18 @@ class Level extends Sprite {
 	function keyDownHandler (e:KE) {
 		// SPACE to restart the level
 		if (e.keyCode == K.SPACE)	{
-			if (e.shiftKey)	startAgain(seed - 1, lvl);
-			else			startAgain(seed, lvl);
+			//if (e.shiftKey)	startAgain(seed - 1, lvl);
+			//else			startAgain(seed, lvl);
+			startAgain(seed, lvl);
 			return;
 		}
 		// If a key is already down or if the level is over, return
 		if (isDown || hasEnded)	return;
 		// If a key has been pressed
 		if (e.keyCode == K.UP || e.keyCode == K.LEFT || e.keyCode == K.RIGHT) {
+			/// Start timer
+			if (!countdown.running)	countdown.start();
+			//
 			isDown = true;
 			hits++;
 			// Progress in the series if the key was correct
@@ -354,7 +378,6 @@ class Level extends Sprite {
 				}
 				// Check victory
 				if (movesIndex == moves.length) {
-					trace("VICTORY");
 					
 					countdown.stop();
 					var time:Float = Std.int((10 - countdown.frames / 30) * 1000) / 1000;
@@ -376,6 +399,8 @@ class Level extends Sprite {
 					case K.RIGHT:
 						laser.xTarget += TILE_SIZE;
 				}
+			} else {
+				countdown.penalty();
 			}
 			Lib.current.stage.addEventListener(KE.KEY_UP, keyUpHandler);
 		}
@@ -412,7 +437,7 @@ class Level extends Sprite {
 	function deactivate (e:GameEvent = null) {
 		hasEnded = true;
 		
-		scoreWindow.setMode(e == null);
+		scoreWindow.setMode((e == null), lvl, (movesIndex / moves.length));
 		Lib.current.stage.removeEventListener(KE.KEY_DOWN, keyDownHandler);
 		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);
 		
@@ -421,9 +446,9 @@ class Level extends Sprite {
 	
 	function stop (win:Bool) {
 		//trace("stop level WIN=" + e.data);
-		Lib.current.stage.addChild(scoreWindow);
+		addChild(scoreWindow);
 		
-		countdown.reset();
+		//countdown.reset();
 		//hasEnded = true;
 		Lib.current.stage.removeEventListener(KE.KEY_UP, keyUpHandler);
 	}

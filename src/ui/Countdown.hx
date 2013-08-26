@@ -17,7 +17,7 @@ class Countdown extends Sprite {
 	
 	public var startFrames:Int;
 	public var frames:Int;
-	var started:Bool;
+	public var running(get, null):Bool;
 	
 	var tf:TextField;
 	
@@ -25,45 +25,55 @@ class Countdown extends Sprite {
 		super();
 		
 		this.frames = this.startFrames = frames;
-		started = false;
+		running = false;
 		
 		tf = new TextField();
+		//tf.border = true;
 		tf.embedFonts = true;
 		tf.selectable = false;
 		tf.width = 200;
-		tf.height = 200;
-		tf.defaultTextFormat = new TextFormat("GoodDog", 96, 0x333333, true);
+		tf.height = 75;
+		tf.defaultTextFormat = new TextFormat("GoodDog", 72, 0x9BCA2A, true);
 		tf.text = Std.string(format());
 		addChild(tf);
 	}
 	
 	public function format () :Float {
 		return Std.int((10 - frames / 30) * 100) / 100;
-		
 	}
 	
 	public function start () {
-		started = true;
+		running = true;
 	}
 	
 	public function stop () {
-		started = false;
+		running = false;
 	}
 	
 	public function update () {
-		if (!started)	return;
+		if (!running)	return;
 		frames--;
 		tf.text = Std.string(format());
 		if (frames == 0) {
 			stop();
-			//Timer.delay(EM.instance.dispatchEvent.bind(new GameEvent(GE.GAME_OVER, false)), 1000);
 			EM.instance.dispatchEvent(new GameEvent(GE.GAME_OVER));
 		}
 	}
 	
-	public function reset () {
-		started = false;
-		frames = startFrames;
+	public function penalty (f:Int = 3) {
+		if (f < 0)	f = 3;
+		while (running && f > 0) {
+			update();
+			f--;
+		}
 	}
+	
+	public function reset () {
+		running = false;
+		frames = startFrames;
+		tf.text = Std.string(format());
+	}
+	
+	function get_running () :Bool { return running; }
 	
 }

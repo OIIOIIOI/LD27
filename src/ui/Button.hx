@@ -13,7 +13,7 @@ import flash.text.TextFormatAlign;
 
 class Button extends Sprite {
 	
-	static var format:TextFormat = new TextFormat("GoodDog", 28, 0xFFFFFF);
+	static var format:TextFormat = new TextFormat("GoodDog", 28, 0x5D7521);
 	
 	var bg:Shape;
 	var tf:TextField;
@@ -28,7 +28,8 @@ class Button extends Sprite {
 		buttonMode = true;
 		
 		bg = new Shape();
-		Game.drawRect(bg.graphics, 0, 1, 140, 35);
+		//Game.drawRect(bg.graphics, 0xC5D98D, 1, 140, 35);
+		Game.drawRoundRect(bg.graphics, 0xBAD277, 1, 140, 35);
 		addChild(bg);
 		
 		tf = new TextField();

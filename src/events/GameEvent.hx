@@ -11,7 +11,7 @@ class GameEvent extends Event {
 	
 	inline static public var GAME_OVER:String = "game_over";
 	inline static public var START_AGAIN:String = "start_again";
-	inline static public var TRY_NEW:String = "try_new";
+	inline static public var GET_FOCUS:String = "get_focus";
 	inline static public var WINDOW_CLOSE:String = "window_close";
 	
 	public var data:Dynamic;

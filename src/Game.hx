@@ -56,4 +56,10 @@ class Game extends Sprite {
 		target.endFill();
 	}
 	
+	static public function drawRoundRect (target:Graphics, color:UInt, alpha:Float = 1, w:Int = 100, h:Int = 100, x:Int = 0, y:Int = 0, radius:Int = 10) {
+		target.beginFill(color, alpha);
+		target.drawRoundRect(x, y, w, h, radius, radius);
+		target.endFill();
+	}
+	
 }

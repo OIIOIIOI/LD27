@@ -11,11 +11,11 @@ $randSeed = mt_rand(0, 999999999);
 $commonSeed = date(ymdH);
 $timeLeft = 60 - date(i);
 // Generate link tag
-function printLink ($ss, $ll, $txt = "", $class = "") {
+function printLink ($ss, $ll, $txt = "", $class = "", $title = "") {
 	global $difficulty;
 	if ($txt == "")			$txt = $ss;
 	else if ($txt == "#")	$txt = $difficulty[$ll];
-	return '<a class="playLink '.$class.'" href="http://01101101.fr/ld27/?s='.$ss.'&l='.$ll.'">'.$txt.'</a>';
+	return '<a class="playLink '.$class.'" href="http://01101101.fr/ld27/?s='.$ss.'&l='.$ll.'" title="'.$title.'">'.$txt.'</a>';
 }
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -24,7 +24,7 @@ function printLink ($ss, $ll, $txt = "", $class = "") {
 	<meta charset="utf-8"/>
 	<title>LD27</title>
 	<meta name="description" content="" />
-	
+	<link rel="stylesheet" href="style.min.css" />
 	<?php
 	// If the seed is set
 	if (isset($_GET['s'])) {
@@ -48,9 +48,9 @@ function printLink ($ss, $ll, $txt = "", $class = "") {
 			id:"LD27"
 		};
 		swfobject.embedSWF(
-			"LD27.swf", 
-			"altContent", "600px", "600px", "11.3.0", 
-			"expressInstall.swf", 
+			"LD27.swf",
+			"altContent", "600px", "600px", "11.3.0",
+			"expressInstall.swf",
 			flashvars, params, attributes);
 	</script>
 	<?php } ?>
@@ -68,88 +68,171 @@ function printLink ($ss, $ll, $txt = "", $class = "") {
 	</script>
 </head>
 <body>
-	<h1><a href="http://01101101.fr/ld27/">Home</a></h1>
 	
-	<table cellpadding="10px">
-		<tr>
-			<td valign="top">
-				<?php
-				if (isset($_GET['s'])) {
-					echo '<div id="altContent"></div>';
-				} else {
-					// Display HTML UI to choose a seed
-					echo '<h2>Compete against others in the HOURLY CHALLENGE</h2>';
-					echo '<h3>(next one in '.$timeLeft.' min)</h3>';
-					echo '<strong>Select the difficulty:</strong><br/>';
-					echo printLink($commonSeed, 0, "#").' | '.printLink($commonSeed, 1, "#").' | '.printLink($commonSeed, 2, "#").' | '.printLink($commonSeed, 3, "#");
-					echo '<br/>';
-					echo '<h2>Play a RANDOM LEVEL</h2>';
-					echo '<strong>Select the difficulty:</strong><br/>';
-					echo printLink($randSeed, 0, "#").' | '.printLink($randSeed, 1, "#").' | '.printLink($randSeed, 2, "#").' | '.printLink($randSeed, 3, "#");
-					echo '<br/>';
-					echo '<h2>Choose a CUSTOM SEED</h2>';
-					echo '<strong>Choose a number between 0 and 999 999 999:</strong><br/>';
-					echo '<input id="customSeed" type="text" maxlength="9" name="customSeed" value="0"><br/>';
-					echo '<strong>Select the difficulty:</strong><br/>';
-					echo printLink($randSeed, 0, "#", "customLink").' | '.printLink($randSeed, 1, "#", "customLink").' | '.printLink($randSeed, 2, "#", "customLink").' | '.printLink($randSeed, 3, "#", "customLink");
-				}
-				?>
-			</td>
-			<td valign="top">
+	<div id="wrapper">
+	
+	<a href="http://01101101.fr/ld27/"><img src="banner.png" alt="banner"/></a>
+	
+	<div id="leftCol">
+		<?php
+		if (isset($_GET['s'])) {
+			echo '<div id="altContent"></div>';
+		} else {
+			// Display HTML UI to choose a seed
+			echo '<h2>Compete against others in the HOURLY CHALLENGE</h2>';
+			echo '<h3>(next one in '.$timeLeft.' min)</h3>';
+			echo '<strong>Select the difficulty:</strong><br/><br/>';
+			echo printLink($commonSeed, 0, "#");
+			echo '&nbsp;&nbsp;';
+			echo printLink($commonSeed, 1, "#");
+			echo '&nbsp;&nbsp;';
+			echo printLink($commonSeed, 2, "#");
+			echo '&nbsp;&nbsp;';
+			echo printLink($commonSeed, 3, "#");
+			echo '<br/>';
+			echo '<br/>';
+			echo '<br/>';
+			echo '<h2>Play a RANDOM LEVEL</h2>';
+			echo '<strong>Select the difficulty:</strong><br/><br/>';
+			echo printLink($randSeed, 0, "#");
+			echo '&nbsp;&nbsp;';
+			echo printLink($randSeed, 1, "#");
+			echo '&nbsp;&nbsp;';
+			echo printLink($randSeed, 2, "#");
+			echo '&nbsp;&nbsp;';
+			echo printLink($randSeed, 3, "#");
+			echo '<br/>';
+			echo '<br/>';
+			echo '<br/>';
+			echo '<h2>Choose a CUSTOM LEVEL ID</h2>';
+			echo '<strong>Choose a number between 0 and 999 999 999:</strong><br/>';
+			echo '<input id="customSeed" type="text" maxlength="9" name="customSeed" value="0"><br/>';
+			echo '<strong>Select the difficulty:</strong><br/><br/>';
+			echo printLink($randSeed, 0, "#", "customLink");
+			echo '&nbsp;&nbsp;';
+			echo printLink($randSeed, 1, "#", "customLink");
+			echo '&nbsp;&nbsp;';
+			echo printLink($randSeed, 2, "#", "customLink");
+			echo '&nbsp;&nbsp;';
+			echo printLink($randSeed, 3, "#", "customLink");
+		}
+		?>
+		
+	</div>
+	
+	<div id="rightCol">
+	
 <?php
-
-if (isset($_GET['l']))				$l = $_GET['l'];
-else								$l = 1;
-if ($l != 0 && $l != 1 && $l != 2)	$l = 1;
 
 require_once "db.php";
 
 if (isset($_GET['s'])) {
-	echo "<h1>Best times for seed ".$_GET['s'].", ordered by difficulty</h1>";
 	
+	
+	echo "<h1>Level ID: ".$_GET['s']."</h1>";
+	echo "<h2>Leaderboard</h2>";
+	
+	?>
+					
+	<?php
 	for ($i = 3; $i >= 0; $i--) {
-		echo "<h2>".$difficulty[$i]."</h2>";
+		if ($i == $l)	echo "<h3 class='boardHeader'>".$difficulty[$i]."<span class='playLink'>Currently selected</span></h3>";//no link if current diff
+		else			echo "<h3 class='boardHeader'>".$difficulty[$i]."".printLink($_GET['s'], $i, "Select", "", "Click to change the difficulty")."</h3>";// link to select this diff
+		?>
+				<table class="leaderboard" cellpadding="6px" cellspacing="0px">
+		<?php
 		
 		// Prepare and execute statement
-		$stmt = mysqli_prepare($db, "SELECT name, time, moves FROM LD27 WHERE seed = ? AND level = ? ORDER BY time LIMIT 10");
+		$stmt = mysqli_prepare($db, "SELECT name, time, moves FROM LD27 WHERE seed = ? AND level = ? ORDER BY time, moves LIMIT 10");
 		mysqli_stmt_bind_param($stmt, 'ii', $_GET['s'], $i);
 		mysqli_stmt_execute($stmt);
 		
 		mysqli_stmt_bind_result($stmt, $r_name, $r_time, $r_moves);
-		$empty = true;
+		$init = false;
 		while (mysqli_stmt_fetch($stmt)) {
-			$empty = false;
-			echo $r_name." | ".$r_time." | ".$r_moves."/".$moves[$i]." moves<br/>";
+			if (!$init) {
+				echo '
+					<tr>
+						<th class="name" align="left">NAME</th>
+						<th class="time" align="right">TIME</th>
+						<th class="moves" align="right">MOVES</th>
+					</tr>
+				';
+				$init = true;
+			}
+			echo '
+				<tr>
+					<td class="name" align="left">'.$r_name.'</td>
+					<td class="time" align="right">'.$r_time.'</td>
+					<td class="moves" align="right">'.$r_moves."/".$moves[$i].'</td>
+				</tr>
+			';
 		}
-		if ($empty) {
-			echo 'No time yet<br/><a href="http://01101101.fr/ld27/?s='.$_GET['s'].'&l='.$i.'">Be the first!</a>';
+		if (!$init) {
+			echo '
+				<tr>
+					<th colspan="3" align="left">Nothing here for now. Will your name be the first?</th>
+				</tr>
+			';
 		}
 		
 		mysqli_stmt_close($stmt);
+		?>
+				</table>
+		<?php
 	}
 }
 else {
-	echo "<h1>Best times for all levels, ordered by difficulty</h1>";
+	echo "<h1>Main leaderboard</h1>";
+	echo "<h2>The best times across all levels</h2>";
 	
 	for ($i = 3; $i >= 0; $i--) {
-		echo "<h2>".$difficulty[$i]."</h2>";
+		echo "<h3 class='boardHeader'>".$difficulty[$i]."</h3>";
+		?>
+				<table class="leaderboard" cellpadding="6px" cellspacing="0px">
+		<?php
 		
 		// Prepare and execute statement
-		$stmt = mysqli_prepare($db, "SELECT name, time, moves, seed FROM LD27 WHERE level = ? ORDER BY time LIMIT 10");
+		$stmt = mysqli_prepare($db, "SELECT name, time, moves, seed FROM LD27 WHERE level = ? ORDER BY time, moves LIMIT 10");
 		mysqli_stmt_bind_param($stmt, 'i', $i);
 		mysqli_stmt_execute($stmt);
 		
 		mysqli_stmt_bind_result($stmt, $r_name, $r_time, $r_moves, $r_seed);
-		$empty = true;
+		$init = false;
 		while (mysqli_stmt_fetch($stmt)) {
-			$empty = false;
-			echo $r_name." | ".$r_time." | ".$r_moves."/".$moves[$i]." moves | ".printLink($r_seed, $i)."<br/>";
+			if (!$init) {
+				echo '
+					<tr>
+						<th class="name" align="left">NAME</th>
+						<th class="time" align="right">TIME</th>
+						<th class="moves" align="right">MOVES</th>
+						<th class="seed" align="right">LEVEL ID</th>
+					</tr>
+				';
+				$init = true;
+			}
+			echo '
+				<tr>
+					<td class="name" align="left">'.$r_name.'</td>
+					<td class="time" align="right">'.$r_time.'</td>
+					<td class="moves" align="right">'.$r_moves."/".$moves[$i].'</td>
+					<td class="seed" align="right">'.printLink($r_seed, $i, "", "", "Play this level").'</td>
+				</tr>
+			';
 		}
-		if ($empty) {
-			echo 'No time yet<br/>';
+		if (!$init) {
+			echo '
+				<tr>
+					<th colspan="3" align="left">Nothing here for now.</th>
+				</tr>
+			';
 		}
 		
 		mysqli_stmt_close($stmt);
+		
+		?>
+				</table>
+		<?php
 	}
 }
 
@@ -157,6 +240,11 @@ mysqli_close($db);
 
 
 ?>
+				</div>
+				<div class="clear"></div>
+				
+				</div>
+				
 			</td>
 		</tr>
 	</table>
